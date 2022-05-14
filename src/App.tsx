@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { useRoutes } from 'react-router-dom';
 
-import routerMap from './routerMap';
+import routerMap from '@/routers/routerMap';
 import './App.css';
 
 const App: React.FC = () => {
