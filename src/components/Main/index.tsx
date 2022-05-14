@@ -1,15 +1,21 @@
 import React from 'react';
-import { Route, Routes } from 'react-router-dom';
-import { Content } from 'antd/lib/layout/layout';
+import { Layout } from 'antd';
+
+import Sider from '@/components/Sider';
+import Header from '@/components/Header';
+import Content from '@/components/Content';
+import Footer from '@/components/Footer';
 
 const Main: React.FC = () => {
   return (
-      <Content style={{ margin: '24px 16px 0', overflow: 'initial' }}>
-        <h1>Content</h1>
-        <Routes>
-          <Route path="/" />
-        </Routes>
-      </Content>
+    <main>
+      <Sider />
+      <Layout style={{ marginLeft: 200 }}>
+        <Header />
+        <Content />
+        <Footer />
+      </Layout>
+    </main>
   );
 };
 

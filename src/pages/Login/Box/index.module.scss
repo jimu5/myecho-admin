@@ -1,0 +1,69 @@
+@import '../../../styles/base.scss';
+@import '../../../styles/style.scss';
+
+.loginBox {
+  width: 400px;
+  min-height: 400px;
+  background: $themeColor;
+  display: flex;
+  margin: auto;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(5px);
+  border-radius: $midRadius;
+  box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.loginWrapper {
+  position: relative;
+  top: -30px;
+  width: 100%;
+  height: 100%;
+  padding: 50px;
+  h2 {
+    position: relative;
+    color: $textColor;
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: 5px;
+    margin-bottom: 30px;
+    cursor: pointer;
+  }
+  h2::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -10px;
+    width: 0px;
+    height: 3px;
+    background: $textColor;
+    transition: 0.5s;
+  }
+  h2:hover:before {
+    width: 53px;
+  }
+  input {
+    width: 80%;
+    margin-top: 30px;
+    padding: 10px 20px;
+    background: $themeColor1;
+    outline: none;
+    border: none;
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 16px;
+    letter-spacing: 1px;
+    color: $textColor;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  }
+}
+.loginBtn{
+  right: 50px;
+  bottom: 20px;
+  @extend .btnBase;
+}
