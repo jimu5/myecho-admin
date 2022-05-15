@@ -17,13 +17,15 @@ const ArticleWrite: React.FC<Props> = ({ article }) => {
   const [, setVd] = React.useState<Vditor>();
 
   const fillArticle = useCallback(
-  (vditor: Vditor) => {
-    if (!article) {
-      return;
-    }
-    vditor.setValue(article?.detail.content);
-    setVd(vditor);
-  }, [article]);
+    (vditor: Vditor) => {
+      if (!article) {
+        return;
+      }
+      vditor.setValue(article?.detail.content);
+      setVd(vditor);
+    },
+    [article]
+  );
 
   React.useEffect(() => {
     const vditor = new Vditor('vditor', {
@@ -31,7 +33,7 @@ const ArticleWrite: React.FC<Props> = ({ article }) => {
       after: () => {
         fillArticle(vditor);
         setVd(vditor);
-      }
+      },
     });
   }, [fillArticle]);
 
@@ -44,7 +46,11 @@ const ArticleWrite: React.FC<Props> = ({ article }) => {
         </input>
         <div id="vditor" className="vditor" />
       </Content>
-      <Sider className={s.sider}>
+      <Sider
+        className={s.sider}
+        breakpoint="lg"
+        collapsedWidth="0"
+        theme="light">
         <div className={s.submitDiv}>
           <p>这里放文章的一些设置项目</p>
         </div>
