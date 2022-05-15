@@ -1,13 +1,18 @@
 import React from 'react';
 import { Layout, Menu } from 'antd';
+import { useNavigate } from 'react-router-dom';
 
 import menuConfig from './menuConfig';
 
 const { Sider } = Layout;
 
 const MySider: React.FC = () => {
+
+  const navigate = useNavigate();
+
   return (
     <Sider
+      theme='light'
       breakpoint="lg"
       collapsedWidth="0"
       onBreakpoint={(broken) => {
@@ -23,10 +28,12 @@ const MySider: React.FC = () => {
       }}
       >
       <Menu
-        theme="dark"
         mode="inline"
         defaultSelectedKeys={['1']}
         items={menuConfig}
+        onClick={(item) => {
+          navigate(item.key);
+        }}
       />
     </Sider>
   );

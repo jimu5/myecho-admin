@@ -3,29 +3,29 @@ import { ControlOutlined, PushpinOutlined } from '@ant-design/icons';
 
 const menuConfig = [
   {
-    key: '1',
+    key: '/',
     icon: <ControlOutlined />,
     label: '仪表盘',
   },
   {
-    key: '2',
+    key: 'article',
     icon: <PushpinOutlined />,
     label: '文章',
     children: [
       {
-        key: '2-1',
+        key: 'article/all',
         label: '所有文章',
       },
       {
-        key: '2-2',
+        key: 'article/write',
         label: '写文章',
       },
       {
-        key: '2-3',
+        key: 'article/category',
         label: '分类',
       },
       {
-        key: '2-4',
+        key: 'article/tag',
         label: '标签',
       },
     ],
