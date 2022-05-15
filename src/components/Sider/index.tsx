@@ -1,34 +1,9 @@
 import React from 'react';
-import type { MenuProps } from 'antd';
 import { Layout, Menu } from 'antd';
-import {
-  AppstoreOutlined,
-  BarChartOutlined,
-  CloudOutlined,
-  ShopOutlined,
-  TeamOutlined,
-  UserOutlined,
-  UploadOutlined,
-  VideoCameraOutlined,
-} from '@ant-design/icons';
+
+import menuConfig from './menuConfig';
 
 const { Sider } = Layout;
-
-const items: MenuProps['items'] = [
-  UserOutlined,
-  VideoCameraOutlined,
-  UploadOutlined,
-  BarChartOutlined,
-  CloudOutlined,
-  AppstoreOutlined,
-  TeamOutlined,
-  ShopOutlined,
-].map((icon, index) => ({
-  key: String(index + 1),
-  icon: React.createElement(icon),
-  label: `nav ${index + 1}`,
-}));
-
 
 const MySider: React.FC = () => {
   return (
@@ -41,7 +16,7 @@ const MySider: React.FC = () => {
         top: 0,
         bottom: 0,
       }}>
-      <Menu theme="dark" mode="inline" defaultSelectedKeys={['4']} items={items} />
+      <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']} items={menuConfig} />
     </Sider>
   );
 };
