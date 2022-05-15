@@ -8,15 +8,25 @@ const { Sider } = Layout;
 const MySider: React.FC = () => {
   return (
     <Sider
+      breakpoint="lg"
+      collapsedWidth="0"
+      onBreakpoint={(broken) => {
+        console.log(broken);
+      }}
+      onCollapse={(collapsed, type) => {
+        console.log(collapsed, type);
+      }}
       style={{
-        overflow: 'auto',
-        height: '100vh',
-        position: 'fixed',
-        left: 0,
-        top: 0,
-        bottom: 0,
-      }}>
-      <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']} items={menuConfig} />
+        maxWidth: '200px',
+        minWidth: '150px',
+      }}
+      >
+      <Menu
+        theme="dark"
+        mode="inline"
+        defaultSelectedKeys={['1']}
+        items={menuConfig}
+      />
     </Sider>
   );
 };

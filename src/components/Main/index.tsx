@@ -9,11 +9,13 @@ import Footer from '@/components/Footer';
 const Main: React.FC = () => {
   return (
     <main>
-      <Sider />
-      <Layout style={{ marginLeft: 200 }}>
-        <Header />
-        <Content />
-        <Footer />
+      <Layout>
+        <Sider />
+        <Layout>
+          <Header />
+          <Content />
+          <Footer />
+        </Layout>
       </Layout>
     </main>
   );
