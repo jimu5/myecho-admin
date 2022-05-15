@@ -20,6 +20,7 @@ const LoginBox: React.FC = () => {
     }
     UserApi.login({ email, name, password }).then((res) => {
       setUser(res);
+      window.location.href = '/';
     });
   };
 
