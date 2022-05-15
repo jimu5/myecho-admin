@@ -31,7 +31,10 @@
     "extends": [
       "react-app",
       "react-app/jest"
-    ]
+    ],
+    "rules":{
+      "jsx-a11y/anchor-is-valid":"off"
+    }
   },
   "browserslist": {
     "production": [
@@ -48,6 +51,7 @@
   "devDependencies": {
     "@reduxjs/toolkit": "^1.8.1",
     "customize-cra": "^1.0.0",
+    "http-proxy-middleware": "^2.0.6",
     "node-sass": "^7.0.1",
     "react-app-rewired": "^2.2.1"
   }
