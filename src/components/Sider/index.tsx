@@ -19,6 +19,7 @@ const MySider: React.FC = () => {
       style={{
         maxWidth: '200px',
         minWidth: '150px',
+        height: '100vh',
       }}
       >
       <Menu
