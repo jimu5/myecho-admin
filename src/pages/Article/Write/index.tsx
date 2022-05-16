@@ -1,11 +1,13 @@
 import React, { useCallback } from 'react';
 import Vditor from 'vditor';
+import { useLocalStorageState } from 'ahooks';
 import { Layout } from 'antd';
 import 'vditor/dist/index.css';
 
 import { article } from '@/utils/apis/article';
 
 import s from './index.module.scss';
+import ArticleLocalCache from '../articleEditCache';
 
 const { Content, Sider } = Layout;
 
@@ -15,16 +17,19 @@ interface Props {
 
 const ArticleWrite: React.FC<Props> = ({ article }) => {
   const [, setVd] = React.useState<Vditor>();
+  const [articleEditCache, setArticleEditCache] =
+    useLocalStorageState<ArticleLocalCache>('articleEditCache');
 
   const fillArticle = useCallback(
     (vditor: Vditor) => {
       if (!article) {
         return;
       }
+      setArticleEditCache({ title: article?.title });
       vditor.setValue(article?.detail.content);
       setVd(vditor);
     },
-    [article]
+    [article, setArticleEditCache]
   );
 
   React.useEffect(() => {
@@ -41,9 +46,13 @@ const ArticleWrite: React.FC<Props> = ({ article }) => {
     <Layout>
       <Content className={s.content}>
         <h1>撰写新文章</h1>
-        <input placeholder="添加标题" className={s.articleTitle}>
-          {article && article.title}
-        </input>
+        <input
+          placeholder="添加标题"
+          className={s.articleTitle}
+          value={articleEditCache?.title}
+          onChange={(event) => {
+            setArticleEditCache({ title: event.target.value });
+          }}></input>
         <div id="vditor" className="vditor" />
       </Content>
       <Sider
