@@ -1,3 +1,5 @@
+@import '../../../styles/style.scss';
+
 .articleTitle {
   font-size: 1.5rem;
   font-weight: bold;
@@ -11,10 +13,41 @@
 }
 .sider {
   margin-left: 0.5rem;
-  background-color: rgba($color: #ffffff, $alpha: 1.0);
+  background-color: rgba($color: #ffffff, $alpha: 0.0);
   @media (max-width: 992px) {
     position: fixed;
     right: 10%;
     top: 8%;
   }
+}
+.topPostDiv {
+  padding: 6px;
+  height: 36px;
+  width: 100%;
+}
+.postBtn {
+  @extend .btnBase;
+  font-size: 13px;
+  border-radius: 3px;
+}
+.savePost {
+  @extend .postBtn;
+  float: left;
+}
+.postSettingDiv {
+  padding: 8px, 0, 0;
+  height: 100%
+}
+.postSettingSection {
+  padding: 6px 10px 8px;
+  height: 100%;
+}
+.bottomPostDiv {
+  padding: 6px;
+  height: 36px;
+  width: 100%;
+}
+.postSubmit {
+  @extend .postBtn;
+  float: right;
 }

@@ -12,16 +12,10 @@
 }
 
 .btnBase {
-  position: absolute;
   width: $btnWidth;
-  height: 36px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  user-select: none;
   bottom: 0;
   border-radius: 14px;
-  font-size: 18px;
+  color: #4e5969;
   cursor: pointer;
   background-color: $themeColor1;
   @extend .hover;
