@@ -3,6 +3,8 @@ import { useLocalStorageState } from 'ahooks';
 import { Layout, Menu, Dropdown, Space } from 'antd';
 import { DownOutlined, UserOutlined } from '@ant-design/icons';
 
+import { loginResponse } from '@/utils/apis/user';
+
 const { Header } = Layout;
 const menu = (
   <Menu
@@ -20,7 +22,7 @@ const menu = (
 );
 
 const Myheader: React.FC = () => {
-  const [user] = useLocalStorageState('user');
+  const [user] = useLocalStorageState<loginResponse>('user');
   return (
     <Header style={{ background: '#fff', padding: 0 }}>
       <div style={{
@@ -30,7 +32,7 @@ const Myheader: React.FC = () => {
         <Dropdown overlay={menu}>
           <a onClick={(e) => e.preventDefault()}>
             <Space>
-              <span>{user.nick_name}</span>
+              <span>{user?.nick_name}</span>
               <UserOutlined />
               <DownOutlined />
             </Space>
