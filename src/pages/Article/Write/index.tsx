@@ -99,6 +99,11 @@ const ArticleWrite: React.FC<Props> = ({ article }) => {
                 <Select
                   style={{ width: '60%' }}
                   value={articleEditCache?.status}
+                  disabled={
+                    articleEditCache?.status
+                      ? [2, 5].includes(articleEditCache.status)
+                      : true
+                  }
                   onChange={(value) => {
                     setArticleEditCache({ ...articleEditCache, status: value });
                   }}>
