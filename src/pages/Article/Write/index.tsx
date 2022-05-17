@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react';
 import Vditor from 'vditor';
 import { useLocalStorageState } from 'ahooks';
-import { Layout, Card } from 'antd';
+import { Layout, Card, Select } from 'antd';
+import { KeyOutlined, EyeOutlined } from '@ant-design/icons';
 import 'vditor/dist/index.css';
 
 import { article } from '@/utils/apis/article';
@@ -11,6 +12,7 @@ import s from './index.module.scss';
 import './index.scss';
 
 const { Content, Sider } = Layout;
+const { Option } = Select;
 
 interface Props {
   article?: article;
@@ -26,7 +28,8 @@ const ArticleWrite: React.FC<Props> = ({ article }) => {
       if (!article) {
         return;
       }
-      setArticleEditCache({ title: article?.title });
+      // 将 localStorage 中的数据填充到vditor中
+      setArticleEditCache({ ...article });
       vditor.setValue(article?.detail.content);
       setVd(vditor);
     },
@@ -52,7 +55,10 @@ const ArticleWrite: React.FC<Props> = ({ article }) => {
           className={s.articleTitle}
           value={articleEditCache?.title}
           onChange={(event) => {
-            setArticleEditCache({ title: event.target.value });
+            setArticleEditCache({
+              ...articleEditCache,
+              title: event.target.value,
+            });
           }}></input>
         <div id="vditor" className="vditor" />
       </Content>
@@ -87,15 +93,35 @@ const ArticleWrite: React.FC<Props> = ({ article }) => {
               <button className={s.savePost}>保存草稿</button>
             </div>
             <div className={s.postSettingDiv}>
-              <p className={s.postSettingSection}>
-                状态设置
-              </p>
-              <p className={s.postSettingSection}>
-                可见性设置
-              </p>
-              <p className={s.postSettingSection}>
-                发布时间
-              </p>
+              <div className={s.postSettingSection}>
+                <KeyOutlined />
+                <span>状态：</span>
+                <Select
+                  style={{ width: '60%' }}
+                  value={articleEditCache?.status}
+                  onChange={(value) => {
+                    setArticleEditCache({ ...articleEditCache, status: value });
+                  }}>
+                  <Option value={1}>发布</Option>
+                  <Option value={3}>草稿</Option>
+                  <Option value={4}>等待复审</Option>
+                </Select>
+              </div>
+              <div className={s.postSettingSection}>
+                <EyeOutlined />
+                <span>可见性：</span>
+                <Select
+                  style={{ width: '60%' }}
+                  value={articleEditCache?.status}
+                  onChange={(value) => {
+                    setArticleEditCache({ ...articleEditCache, status: value });
+                  }}>
+                  <Option value={1}>公开</Option>
+                  <Option value={2}>置顶</Option>
+                  <Option value={5}>私密</Option>
+                </Select>
+              </div>
+              <p className={s.postSettingSection}>发布时间</p>
             </div>
             <div className={s.bottomPostDiv}>
               <button className={s.postSubmit}>立即发布</button>

@@ -8,6 +8,15 @@ export interface articleDetail {
     content: string;
 }
 
+// 文章状态
+export const articleStatus = {
+    1: '已发布',
+    2: '置顶',
+    3: '草稿',
+    4: '等待复审',
+    5: '仅自己可见',
+    6: '回收站'
+}
 
 // 单个文章的结构
 export interface article extends baseReturn {
