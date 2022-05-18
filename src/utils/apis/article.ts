@@ -33,9 +33,26 @@ export interface article extends baseReturn {
     status: number;
 }
 
+export interface articleRequest {
+    title?: string;
+    summary?: string;
+    content?: string;
+    category_id?: number;
+    is_allow_comment?: boolean;
+    post_time?: string;
+    status?: number;
+    password?: string;
+}
+
 export class ArticleApi {
     // 获取文章列表
     static getList(params: { page: number; page_size: number;}) {
         return axios.get('/articles', { params });
+    }
+    static create(params: articleRequest) {
+        return axios.post('articles', params);
+    }
+    static patch(id: number, params: articleRequest) {
+        return axios.patch(`/articles/${id}`, params);
     }
 }
