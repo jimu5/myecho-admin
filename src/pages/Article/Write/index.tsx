@@ -93,17 +93,18 @@ const ArticleWrite: React.FC<Props> = ({ article }) => {
               <button className={s.savePost}>保存草稿</button>
             </div>
             <div className={s.postSettingDiv}>
-              <div className={s.postSettingSection}>
+              <div
+                className={s.postSettingSection}
+                style={{
+                  display: articleEditCache?.status
+                    ? [2, 5].includes(articleEditCache.status) ? 'none' : 'block'
+                    : 'block',
+                }}>
                 <KeyOutlined />
                 <span>状态：</span>
                 <Select
                   style={{ width: '60%' }}
                   value={articleEditCache?.status}
-                  disabled={
-                    articleEditCache?.status
-                      ? [2, 5].includes(articleEditCache.status)
-                      : true
-                  }
                   onChange={(value) => {
                     setArticleEditCache({ ...articleEditCache, status: value });
                   }}>
@@ -117,7 +118,9 @@ const ArticleWrite: React.FC<Props> = ({ article }) => {
                 <span>可见性：</span>
                 <Select
                   style={{ width: '60%' }}
-                  value={articleEditCache?.status}
+                  value={articleEditCache?.status
+                    ? [2, 5].includes(articleEditCache.status)? articleEditCache?.status : 1
+                    : 1}
                   onChange={(value) => {
                     setArticleEditCache({ ...articleEditCache, status: value });
                   }}>
