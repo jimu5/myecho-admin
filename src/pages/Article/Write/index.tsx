@@ -194,9 +194,10 @@ const ArticleWrite: React.FC<Props> = ({ article }) => {
               <CommentOutlined />
               <span>是否允许评论</span>
               <Switch
+                defaultChecked = {articleEditCache?.is_allow_comment}
                 onChange={(checked) => {
                   if (articleEditCache)
-                    articleEditCache.is_allow_comment = checked;
+                    setArticleEditCache({...articleEditCache, is_allow_comment: checked});
                 }}
               />
             </div>
