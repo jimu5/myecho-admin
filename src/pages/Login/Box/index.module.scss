@@ -63,7 +63,13 @@
   }
 }
 .loginBtn{
+  position: absolute;
   right: 50px;
   bottom: 20px;
   @extend .btnBase;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 36px;
+  font-size: 18px;
 }
