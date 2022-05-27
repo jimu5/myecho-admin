@@ -2,9 +2,8 @@ import React, { lazy } from 'react';
 
 const elements = {
   article: {
-    write: lazy(
-      () => import(/* webpackPrefetch:true */ '@/pages/Article/Write')
-    ),
+    write: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Article/Write')),
+    all: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Article/All')),
   },
 };
 
@@ -19,6 +18,10 @@ const contentRoutes = [
       {
         path: 'write',
         element: <elements.article.write />,
+      },
+      {
+        path: 'all',
+        element: <elements.article.all />,
       },
     ],
   },
