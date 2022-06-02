@@ -52,6 +52,9 @@ export class ArticleApi {
     static create(params: articleRequest) {
         return axios.post('articles', params);
     }
+    static get(id: number) {
+        return axios.get(`/articles/${id}`);
+    }
     static patch(id: number, params: articleRequest) {
         return axios.patch(`/articles/${id}`, params);
     }

@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react';
 import moment from 'moment';
 import Vditor from 'vditor';
-import { useLocalStorageState } from 'ahooks';
+import { useParams } from 'react-router-dom';
+import { useLocalStorageState, useRequest, useSafeState } from 'ahooks';
 import { Layout, Card, Select, DatePicker, notification, Switch } from 'antd';
 import {
   KeyOutlined,
@@ -21,11 +22,21 @@ import './index.scss';
 const { Content, Sider } = Layout;
 const { Option } = Select;
 
-interface Props {
-  article?: article;
-}
+var article_info: article | undefined;  // 不安全的做法
 
-const ArticleWrite: React.FC<Props> = ({ article }) => {
+const ArticleWrite: React.FC = () => {
+  const { id } = useParams();
+  const article_id = id ? parseInt(id) : undefined;
+  const { runAsync } = useRequest(
+    () =>
+      article_id
+        ? ArticleApi.get(article_id).then((data) => {
+            article_info = data as any;
+          })
+        : Promise.resolve(),
+    { manual: true }
+  );
+  const [, setEmpty] = useSafeState(false);  // TODO: 临时用来刷新组件的，需要和上面的article_info一起改
   const [vditor, setVd] = React.useState<Vditor>();
   const [articleEditCache, setArticleEditCache] =
     useLocalStorageState<ArticleLocalCache>('articleEditCache', {
@@ -34,15 +45,16 @@ const ArticleWrite: React.FC<Props> = ({ article }) => {
 
   const fillArticle = useCallback(
     (vditor: Vditor) => {
-      if (!article) {
+      if (!article_id) {
         return;
       }
-      // 将 localStorage 中的数据填充到vditor中
-      setArticleEditCache({ ...article });
-      vditor.setValue(article?.detail.content);
-      setVd(vditor);
+      // 如果有文章id的话就填充文章
+      runAsync().then(() => {
+        vditor.setValue(article_info?.detail.content || '');
+        setVd(vditor);
+      });
     },
-    [article, setArticleEditCache]
+    [article_id, runAsync]
   );
 
   React.useEffect(() => {
@@ -57,20 +69,32 @@ const ArticleWrite: React.FC<Props> = ({ article }) => {
 
   const saveArticle = () => {
     let data: articleRequest = {
-      ...articleEditCache,
       content: vditor?.getValue(),
     };
-    if (article?.id) {
-      ArticleApi.patch(article.id, data).then(() => {
+    if (article_id) {
+      data = { ...data, ...article_info };
+      ArticleApi.patch(article_id, data).then(() => {
         notification.success({ message: '更新成功' });
       });
     } else {
+      data = { ...data, ...articleEditCache };
       ArticleApi.create(data).then(() => {
         notification.success({ message: '保存成功' });
         setArticleEditCache({});
         vditor?.setValue('');
       });
     }
+  };
+
+  const isStatusVisible = () => {
+    let checkVar = article_info || articleEditCache;
+    let visible = checkVar?.status
+      ? [2, 5].includes(checkVar.status)
+        ? 'none'
+        : 'block'
+      : 'block';
+    console.log(visible);
+    return visible;
   };
 
   return (
@@ -80,12 +104,18 @@ const ArticleWrite: React.FC<Props> = ({ article }) => {
         <input
           placeholder="添加标题"
           className={s.articleTitle}
-          value={articleEditCache?.title || ''}
+          defaultValue={
+            article_info ? article_info?.title : articleEditCache.title
+          }
           onChange={(event) => {
-            setArticleEditCache({
-              ...articleEditCache,
-              title: event.target.value,
-            });
+            if (!article_info) {
+              setArticleEditCache({
+                ...articleEditCache,
+                title: event.target.value,
+              });
+            } else {
+              article_info.title = event.target.value;
+            }
           }}></input>
         <div id="vditor" className="vditor" />
       </Content>
@@ -130,19 +160,31 @@ const ArticleWrite: React.FC<Props> = ({ article }) => {
               <div
                 className={s.postSettingSection}
                 style={{
-                  display: articleEditCache?.status
-                    ? [2, 5].includes(articleEditCache.status)
-                      ? 'none'
-                      : 'block'
+                  display: [2, 5].includes(
+                    article_info?.status || articleEditCache.status!
+                  )
+                    ? 'none'
                     : 'block',
                 }}>
                 <KeyOutlined />
                 <span>状态：</span>
                 <Select
                   style={{ width: '60%' }}
-                  value={articleEditCache?.status || 1}
+                  defaultValue={
+                    article_info
+                      ? article_info?.status
+                      : articleEditCache.status || 1
+                  }
                   onChange={(value) => {
-                    setArticleEditCache({ ...articleEditCache, status: value });
+                    if (!article_info) {
+                      setArticleEditCache({
+                        ...articleEditCache,
+                        status: value,
+                      });
+                    } else {
+                      article_info.status = value;
+                      setEmpty(true);
+                    }
                   }}>
                   <Option value={1}>发布</Option>
                   <Option value={3}>草稿</Option>
@@ -154,16 +196,22 @@ const ArticleWrite: React.FC<Props> = ({ article }) => {
                 <span>可见性：</span>
                 <Select
                   style={{ width: '60%' }}
-                  value={
+                  defaultValue={
                     // 状态如果为 发布 草稿 等待复审，显示为公开
-                    articleEditCache?.status
-                      ? [2, 5].includes(articleEditCache.status)
-                        ? articleEditCache?.status
-                        : 1
+                    [2, 5].includes(article_info?.status || articleEditCache.status!)
+                      ? article_info?.status || articleEditCache.status
                       : 1
                   }
                   onChange={(value) => {
-                    setArticleEditCache({ ...articleEditCache, status: value });
+                    if (!article_info) {
+                      setArticleEditCache({
+                        ...articleEditCache,
+                        status: value,
+                      });
+                    } else {
+                      article_info.status = value;
+                      setEmpty(true);
+                    }
                   }}>
                   <Option value={1}>公开</Option>
                   <Option value={2}>置顶</Option>
@@ -175,17 +223,18 @@ const ArticleWrite: React.FC<Props> = ({ article }) => {
                 <span>发布时间</span>
                 <DatePicker
                   showTime
-                  defaultValue={
-                    articleEditCache?.post_time
-                      ? moment(articleEditCache?.post_time)
-                      : undefined
-                  }
+                  defaultValue={moment(
+                    article_info?.post_time || articleEditCache.post_time
+                  )}
                   onChange={(_, dateString) => {
-                    console.log(moment().format('YYYY-MM-DDTHH:mm:ss[Z]'));
-                    setArticleEditCache({
-                      ...articleEditCache,
-                      post_time: formatDateTime(dateString),
-                    });
+                    if (!article_info) {
+                      setArticleEditCache({
+                        ...articleEditCache,
+                        post_time: formatDateTime(dateString),
+                      });
+                    } else {
+                      article_info.post_time = formatDateTime(dateString);
+                    }
                   }}
                 />
               </div>
@@ -194,15 +243,27 @@ const ArticleWrite: React.FC<Props> = ({ article }) => {
               <CommentOutlined />
               <span>是否允许评论</span>
               <Switch
-                defaultChecked = {articleEditCache?.is_allow_comment}
+                defaultChecked={
+                  article_info
+                    ? article_info.is_allow_comment
+                    : articleEditCache?.is_allow_comment
+                }
                 onChange={(checked) => {
-                  if (articleEditCache)
-                    setArticleEditCache({...articleEditCache, is_allow_comment: checked});
+                  if (!article_info) {
+                    setArticleEditCache({
+                      ...articleEditCache,
+                      is_allow_comment: checked,
+                    });
+                  } else {
+                    article_info.is_allow_comment = checked;
+                  }
                 }}
               />
             </div>
             <div className={s.bottomPostDiv}>
-              <button className={s.postSubmit}>立即发布</button>
+              <button className={s.postSubmit} onClick={saveArticle}>
+                立即发布
+              </button>
             </div>
           </Card>
         </div>
