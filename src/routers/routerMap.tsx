@@ -7,14 +7,14 @@ const Main = lazy(() => import(/* webpackPrefetch:true */ '@/components/Main'));
 
 const routerMap = [
   {
-    path: '*',
+    path: 'admin/*',
     element: (
       <RequireAuth>
         <Main />
       </RequireAuth>
     ),
   },
-  { path: '/login', name: 'Login', element: <Login /> },
+  { path: 'admin/login', name: 'Login', element: <Login /> },
 ];
 
 export default routerMap;

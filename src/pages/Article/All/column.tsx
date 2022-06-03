@@ -1,10 +1,9 @@
 import React from 'react';
 import { Space } from 'antd';
 import type { ColumnsType } from 'antd/lib/table';
-import { NavLink } from 'react-router-dom';
 
 import { article } from '@/utils/apis/article';
-
+import AdminNavLink from '@/routers/AdminNavlink';
 
 const columns: ColumnsType<article> = [
   {
@@ -48,7 +47,7 @@ const columns: ColumnsType<article> = [
     key: 'action',
     render: (_, record) => (
       <Space size="middle">
-        <NavLink to={`/article/write/${record.id}`}>编辑</NavLink>
+        <AdminNavLink to={`article/write/${record.id}`}>编辑</AdminNavLink>
         <a>删除</a>
       </Space>
     ),

@@ -11,11 +11,11 @@ const elements = {
 
 const contentRoutes = [
   {
-    path: '/',
+    path: '',
     element: <h1> / </h1>,
   },
   {
-    path: '/article',
+    path: 'article',
     children: [
       {
         path: 'write',
