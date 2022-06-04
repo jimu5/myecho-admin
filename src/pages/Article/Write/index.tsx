@@ -22,7 +22,7 @@ import './index.scss';
 const { Content, Sider } = Layout;
 const { Option } = Select;
 
-var article_info: article | undefined;  // 不安全的做法
+var article_info: article | undefined; // 不安全的做法
 
 const ArticleWrite: React.FC = () => {
   const { id } = useParams();
@@ -36,7 +36,7 @@ const ArticleWrite: React.FC = () => {
         : Promise.resolve(),
     { manual: true }
   );
-  const [, setEmpty] = useSafeState(false);  // TODO: 临时用来刷新组件的，需要和上面的article_info一起改
+  const [, setEmpty] = useSafeState(false); // TODO: 临时用来刷新组件的，需要和上面的article_info一起改
   const [vditor, setVd] = React.useState<Vditor>();
   const [articleEditCache, setArticleEditCache] =
     useLocalStorageState<ArticleLocalCache>('articleEditCache', {
@@ -45,27 +45,28 @@ const ArticleWrite: React.FC = () => {
 
   const fillArticle = useCallback(
     (vditor: Vditor) => {
-      if (!article_id) {
-        return;
+      if (article_id) {
+        // 如果有文章id的话就填充文章
+        runAsync().then(() => {
+          vditor.setValue(article_info?.detail.content || '');
+          setVd(vditor);
+        });
       }
-      // 如果有文章id的话就填充文章
-      runAsync().then(() => {
-        vditor.setValue(article_info?.detail.content || '');
-        setVd(vditor);
-      });
     },
     [article_id, runAsync]
   );
 
   React.useEffect(() => {
+    const useCache = Boolean(!article_id);
     const vditor = new Vditor('vditor', {
       height: window.innerHeight / 2,
       after: () => {
         fillArticle(vditor);
         setVd(vditor);
       },
+      cache: { enable: useCache },
     });
-  }, [fillArticle]);
+  }, [fillArticle, article_id]);
 
   const saveArticle = () => {
     let data: articleRequest = {
@@ -198,7 +199,9 @@ const ArticleWrite: React.FC = () => {
                   style={{ width: '60%' }}
                   defaultValue={
                     // 状态如果为 发布 草稿 等待复审，显示为公开
-                    [2, 5].includes(article_info?.status || articleEditCache.status!)
+                    [2, 5].includes(
+                      article_info?.status || articleEditCache.status!
+                    )
                       ? article_info?.status || articleEditCache.status
                       : 1
                   }
