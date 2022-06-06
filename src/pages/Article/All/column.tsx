@@ -2,7 +2,7 @@ import React from 'react';
 import { Space } from 'antd';
 import type { ColumnsType } from 'antd/lib/table';
 
-import { article } from '@/utils/apis/article';
+import { article, articleStatus } from '@/utils/apis/article';
 import AdminNavLink from '@/routers/AdminNavlink';
 
 const columns: ColumnsType<article> = [
@@ -36,6 +36,7 @@ const columns: ColumnsType<article> = [
     title: '状态',
     dataIndex: 'status',
     key: 'status',
+    render: (text: number) => <span>{articleStatus[text]}</span>,
   },
   {
     title: '点赞数',
