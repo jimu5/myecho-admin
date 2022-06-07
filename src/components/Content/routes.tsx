@@ -6,6 +6,7 @@ const elements = {
       () => import(/* webpackPrefetch:true */ '@/pages/Article/Write')
     ),
     all: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Article/All')),
+    tag: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Article/Tag')),
   },
 };
 
@@ -28,6 +29,10 @@ const contentRoutes = [
         path: 'all',
         element: <elements.article.all />,
       },
+      {
+        path: 'tag',
+        element: <elements.article.tag />,
+      }
     ],
   },
 ];

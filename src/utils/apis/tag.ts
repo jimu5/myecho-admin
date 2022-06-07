@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "../axios";
 import baseReturn from "./baseReturn"
 
 export interface tag extends baseReturn {
@@ -8,7 +8,7 @@ export interface tag extends baseReturn {
 
 export class TagApi {
   static getList(): Promise<tag[]> {
-    return axios.get("/tags");
+    return axios.get("/tags/all");
   }
   static get(id: number) {
     return axios.get(`/tags/${id}`);

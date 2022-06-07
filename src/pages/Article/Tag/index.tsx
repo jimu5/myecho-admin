@@ -15,6 +15,6 @@ const TagIndex: React.FC = () => {
       ))}
     </div>
   );
-}
+};
 
 export default TagIndex;
