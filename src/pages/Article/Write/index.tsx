@@ -9,10 +9,12 @@ import {
   EyeOutlined,
   ClockCircleOutlined,
   CommentOutlined,
+  TagsOutlined,
 } from '@ant-design/icons';
 import 'vditor/dist/index.css';
 
 import { article, articleRequest, ArticleApi } from '@/utils/apis/article';
+import { tag, TagApi } from '@/utils/apis/tag';
 import { formatDateTime } from '@/utils/datetime';
 
 import ArticleLocalCache from '../articleEditCache';
@@ -38,6 +40,7 @@ const ArticleWrite: React.FC = () => {
   );
   const [, setEmpty] = useSafeState(false); // TODO: 临时用来刷新组件的，需要和上面的article_info一起改
   const [vditor, setVd] = React.useState<Vditor>();
+  const [tagData, setTagData] = useSafeState<tag[]>([]);
   const [articleEditCache, setArticleEditCache] =
     useLocalStorageState<ArticleLocalCache>('articleEditCache', {
       defaultValue: {},
@@ -66,7 +69,10 @@ const ArticleWrite: React.FC = () => {
       },
       cache: { enable: useCache },
     });
-  }, [fillArticle, article_id]);
+    TagApi.getList().then((data) => {
+      setTagData(data);
+    });
+  }, [fillArticle, article_id, setTagData]);
 
   const saveArticle = () => {
     let data: articleRequest = {
@@ -262,6 +268,23 @@ const ArticleWrite: React.FC = () => {
                   }
                 }}
               />
+            </div>
+            {/* tag标签 */}
+            <div className={s.tagDiv}>
+              <TagsOutlined />
+              <span>标签: </span>
+              <Select
+                showSearch
+                allowClear
+                mode="multiple"
+                style={{ width: '100%' }}
+                onSearch={() => {
+                  // TODO: 搜索标签
+                }}>
+                {tagData.map((d) => (
+                  <Option key={d.id}>{d.name}</Option>
+                ))}
+              </Select>
             </div>
             <div className={s.bottomPostDiv}>
               <button className={s.postSubmit} onClick={saveArticle}>

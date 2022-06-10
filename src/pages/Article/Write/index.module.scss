@@ -6,6 +6,7 @@
   margin-bottom: 1rem;
 }
 .submitDiv {
+  padding: 6px;
   margin-top: 0.5rem;
 }
 .content {
@@ -52,4 +53,8 @@
 .postSubmit {
   @extend .postBtn;
   float: right;
+}
+.tagDiv {
+  padding: 6px;
+  width: 100%;
 }
