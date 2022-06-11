@@ -304,9 +304,7 @@ const ArticleWrite: React.FC = () => {
                   })
                   setEditArticle({ tags })
                 }}
-                onSearch={() => {
-                  // TODO: 搜索标签,目前暂时不用
-                }}>
+                >
                 {tagData.map((d) => (
                   <Option key={d.id}>{d.name}</Option>
                 ))}
