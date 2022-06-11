@@ -95,13 +95,16 @@ const ArticleWrite: React.FC = () => {
     let data: articleRequest = {
       content: vditor?.getValue(),
     };
+    // TODO: 这块逻辑后面要改下
     if (article_id) {
-      data = { ...data, ...article_info };
+      let tag_ids = articleDetail.tags.map((item) => item.id);
+      data = { ...data, ...article_info, tag_ids };
       ArticleApi.patch(article_id, data).then(() => {
         notification.success({ message: '更新成功' });
       });
     } else {
-      data = { ...data, ...articleEditCache };
+      let tag_ids = articleEditCache.tags!.map((item) => item.id);
+      data = { ...data, ...articleEditCache, tag_ids };
       ArticleApi.create(data).then(() => {
         notification.success({ message: '保存成功' });
         setArticleEditCache({} as article);

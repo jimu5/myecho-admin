@@ -44,6 +44,7 @@ export interface articleRequest {
     post_time?: string;
     status?: number;
     password?: string;
+    tag_ids?: number[];
 }
 
 export class ArticleApi {
