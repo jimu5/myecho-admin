@@ -1,6 +1,7 @@
 import axios from '../axios';
 import { user } from './user';
 import baseReturn from './baseReturn';
+import { tag } from './tag';
 
 // 文章详情
 export interface articleDetail {
@@ -31,6 +32,7 @@ export interface article extends baseReturn {
     comment_count: number;
     post_time: string;
     status: number;
+    tags: tag[];
 }
 
 export interface articleRequest {

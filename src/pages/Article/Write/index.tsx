@@ -24,16 +24,17 @@ import './index.scss';
 const { Content, Sider } = Layout;
 const { Option } = Select;
 
-var article_info: article | undefined; // 不安全的做法
+var article_info: article; // 不安全的做法
 
 const ArticleWrite: React.FC = () => {
   const { id } = useParams();
   const article_id = id ? parseInt(id) : undefined;
-  const { runAsync } = useRequest(
+  const { runAsync, loading } = useRequest(
     () =>
       article_id
         ? ArticleApi.get(article_id).then((data) => {
-            article_info = data as any;
+          setArticleDetail(data as any);
+          article_info = data as any;
           })
         : Promise.resolve(),
     { manual: true }
@@ -45,6 +46,22 @@ const ArticleWrite: React.FC = () => {
     useLocalStorageState<ArticleLocalCache>('articleEditCache', {
       defaultValue: {},
     });
+  const [articleDetail, setArticleDetail] = useSafeState<article>(article_info);
+
+  const getEditArticle = () => {
+    if (articleDetail) {
+      return articleDetail
+    }
+    return articleEditCache
+  }
+
+  const setEditArticle = (values: any ) => {
+    if (articleDetail) {
+      setArticleDetail({articleDetail, ...values})
+      return
+    }
+    setArticleEditCache({...articleEditCache, ...values})
+  }
 
   const fillArticle = useCallback(
     (vditor: Vditor) => {
@@ -87,7 +104,7 @@ const ArticleWrite: React.FC = () => {
       data = { ...data, ...articleEditCache };
       ArticleApi.create(data).then(() => {
         notification.success({ message: '保存成功' });
-        setArticleEditCache({});
+        setArticleEditCache({} as article);
         vditor?.setValue('');
       });
     }
@@ -157,7 +174,7 @@ const ArticleWrite: React.FC = () => {
               <button
                 className={s.savePost}
                 onClick={() => {
-                  setArticleEditCache({ status: 3 });
+                  setArticleEditCache({ ...articleEditCache, status: 3 });
                   saveArticle();
                 }}>
                 保存草稿
@@ -274,12 +291,21 @@ const ArticleWrite: React.FC = () => {
               <TagsOutlined />
               <span>标签: </span>
               <Select
+                loading={loading}
                 showSearch
                 allowClear
                 mode="multiple"
                 style={{ width: '100%' }}
+                value={Array.from(getEditArticle().tags!, tag => String(tag.id))}
+                onChange={(value) => {
+                  let tags: tag[] = []
+                  value.forEach((TagID) => {
+                    tags.push({id: Number(TagID), name: ""} as tag)
+                  })
+                  setEditArticle({ tags })
+                }}
                 onSearch={() => {
-                  // TODO: 搜索标签
+                  // TODO: 搜索标签,目前暂时不用
                 }}>
                 {tagData.map((d) => (
                   <Option key={d.id}>{d.name}</Option>

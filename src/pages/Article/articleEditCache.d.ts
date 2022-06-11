@@ -1,3 +1,5 @@
+import { tag } from '@/utils/apis/tag';
+
 export default interface ArticleEditCache {
   title?: string;
   post_time?: string;
@@ -6,4 +8,5 @@ export default interface ArticleEditCache {
   category_id?: number;
   password?: string;
   summary?: string;
+  tags?: tag[];
 }
