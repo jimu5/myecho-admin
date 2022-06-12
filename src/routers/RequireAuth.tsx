@@ -12,7 +12,7 @@ const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       { children }
     </div>
   ) : (
-    <Navigate to="/login" replace />
+    <Navigate to="/admin/login" replace />
   )
 }
 
