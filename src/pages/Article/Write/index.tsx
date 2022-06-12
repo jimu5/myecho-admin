@@ -368,7 +368,6 @@ const ArticleWrite: React.FC = () => {
                 style={{ width: '100%' }}
                 onChange={(value) => {
                   setEditArticle({ category_id: value });
-                  console.log(getEditArticle());
                 }}></TreeSelect>
             </div>
             <div className={s.bottomPostDiv}>
