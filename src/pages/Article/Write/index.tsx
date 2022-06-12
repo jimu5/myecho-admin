@@ -68,7 +68,9 @@ const ArticleWrite: React.FC = () => {
 
   const setEditArticle = (values: any) => {
     if (articleDetail) {
-      setArticleDetail({ articleDetail, ...values });
+      setArticleDetail({ ...articleDetail, ...values });
+      // TODO: 先使用 article_info
+      article_info = { ...article_info, ...values };
       return;
     }
     setArticleEditCache({ ...articleEditCache, ...values });
@@ -139,13 +141,13 @@ const ArticleWrite: React.FC = () => {
     };
     // TODO: 这块逻辑后面要改下
     if (article_id) {
-      let tag_ids = articleDetail.tags.map((item) => item.id);
+      let tag_ids = articleDetail.tags?.map((item) => item.id) || [];
       data = { ...data, ...article_info, tag_ids };
       ArticleApi.patch(article_id, data).then(() => {
         notification.success({ message: '更新成功' });
       });
     } else {
-      let tag_ids = articleEditCache.tags!.map((item) => item.id);
+      let tag_ids = articleEditCache.tags?.map((item) => item.id) || [];
       data = { ...data, ...articleEditCache, tag_ids };
       ArticleApi.create(data).then(() => {
         notification.success({ message: '保存成功' });
