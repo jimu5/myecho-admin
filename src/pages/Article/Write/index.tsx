@@ -3,18 +3,28 @@ import moment from 'moment';
 import Vditor from 'vditor';
 import { useParams } from 'react-router-dom';
 import { useLocalStorageState, useRequest, useSafeState } from 'ahooks';
-import { Layout, Card, Select, DatePicker, notification, Switch } from 'antd';
+import {
+  Layout,
+  Card,
+  Select,
+  DatePicker,
+  notification,
+  Switch,
+  TreeSelect,
+} from 'antd';
 import {
   KeyOutlined,
   EyeOutlined,
   ClockCircleOutlined,
   CommentOutlined,
   TagsOutlined,
+  FolderOutlined,
 } from '@ant-design/icons';
 import 'vditor/dist/index.css';
 
 import { article, articleRequest, ArticleApi } from '@/utils/apis/article';
 import { tag, TagApi } from '@/utils/apis/tag';
+import { category, CategoryApi } from '@/utils/apis/category';
 import { formatDateTime } from '@/utils/datetime';
 
 import ArticleLocalCache from '../articleEditCache';
@@ -33,8 +43,8 @@ const ArticleWrite: React.FC = () => {
     () =>
       article_id
         ? ArticleApi.get(article_id).then((data) => {
-          setArticleDetail(data as any);
-          article_info = data as any;
+            setArticleDetail(data as any);
+            article_info = data as any;
           })
         : Promise.resolve(),
     { manual: true }
@@ -42,6 +52,7 @@ const ArticleWrite: React.FC = () => {
   const [, setEmpty] = useSafeState(false); // TODO: 临时用来刷新组件的，需要和上面的article_info一起改
   const [vditor, setVd] = React.useState<Vditor>();
   const [tagData, setTagData] = useSafeState<tag[]>([]);
+  const [categoryTree, setCategoryTree] = useSafeState([]);
   const [articleEditCache, setArticleEditCache] =
     useLocalStorageState<ArticleLocalCache>('articleEditCache', {
       defaultValue: {},
@@ -50,18 +61,18 @@ const ArticleWrite: React.FC = () => {
 
   const getEditArticle = () => {
     if (articleDetail) {
-      return articleDetail
+      return articleDetail;
     }
-    return articleEditCache
-  }
+    return articleEditCache;
+  };
 
-  const setEditArticle = (values: any ) => {
+  const setEditArticle = (values: any) => {
     if (articleDetail) {
-      setArticleDetail({articleDetail, ...values})
-      return
+      setArticleDetail({ articleDetail, ...values });
+      return;
     }
-    setArticleEditCache({...articleEditCache, ...values})
-  }
+    setArticleEditCache({ ...articleEditCache, ...values });
+  };
 
   const fillArticle = useCallback(
     (vditor: Vditor) => {
@@ -74,6 +85,34 @@ const ArticleWrite: React.FC = () => {
       }
     },
     [article_id, runAsync]
+  );
+
+  const buildTree = useCallback(
+    (data: any) => {
+      const tree: any = [];
+      data.forEach((item: category) => {
+        if (item.father_id === 0 || item.father_id === null) {
+          tree.push({
+            title: item.name,
+            key: item.id,
+            value: item.id,
+            children: [],
+          });
+        } else {
+          const parent = tree.find((i: any) => i.key === item.father_id);
+          if (parent) {
+            parent.children!.push({
+              title: item.name,
+              key: item.id,
+              value: item.id,
+              children: [],
+            });
+          }
+        }
+      });
+      setCategoryTree(tree);
+    },
+    [setCategoryTree]
   );
 
   React.useEffect(() => {
@@ -89,7 +128,10 @@ const ArticleWrite: React.FC = () => {
     TagApi.getList().then((data) => {
       setTagData(data);
     });
-  }, [fillArticle, article_id, setTagData]);
+    CategoryApi.getList().then((data) => {
+      buildTree(data);
+    });
+  }, [fillArticle, article_id, setTagData, buildTree]);
 
   const saveArticle = () => {
     let data: articleRequest = {
@@ -299,19 +341,33 @@ const ArticleWrite: React.FC = () => {
                 allowClear
                 mode="multiple"
                 style={{ width: '100%' }}
-                value={Array.from(getEditArticle().tags!, tag => String(tag.id))}
+                value={Array.from(getEditArticle().tags || [], (tag) =>
+                  String(tag.id)
+                )}
                 onChange={(value) => {
-                  let tags: tag[] = []
+                  let tags: tag[] = [];
                   value.forEach((TagID) => {
-                    tags.push({id: Number(TagID), name: ""} as tag)
-                  })
-                  setEditArticle({ tags })
-                }}
-                >
+                    tags.push({ id: Number(TagID), name: '' } as tag);
+                  });
+                  setEditArticle({ tags });
+                }}>
                 {tagData.map((d) => (
                   <Option key={d.id}>{d.name}</Option>
                 ))}
               </Select>
+            </div>
+            <div className={s.categoryDiv}>
+              <FolderOutlined />
+              <span>分类: </span>
+              <br />
+              <TreeSelect
+                value={getEditArticle()?.category_id || null}
+                treeData={categoryTree}
+                style={{ width: '100%' }}
+                onChange={(value) => {
+                  setEditArticle({ category_id: value });
+                  console.log(getEditArticle());
+                }}></TreeSelect>
             </div>
             <div className={s.bottomPostDiv}>
               <button className={s.postSubmit} onClick={saveArticle}>

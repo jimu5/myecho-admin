@@ -2,6 +2,7 @@ import axios from '../axios';
 import { user } from './user';
 import baseReturn from './baseReturn';
 import { tag } from './tag';
+import { category } from './category';
 
 // 文章详情
 export interface articleDetail {
@@ -25,7 +26,8 @@ export interface article extends baseReturn {
     title: string;
     summary: string;
     detail: articleDetail;
-    category: string;
+    category_id: number;
+    category?: category;
     is_allow_comment: boolean;
     read_count: number;
     like_count: number;

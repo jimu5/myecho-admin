@@ -1,6 +1,5 @@
 import React from 'react';
 import { Select, Button, Input, notification } from 'antd';
-import { DataNode } from 'antd/lib/tree';
 import { useSafeState } from 'ahooks';
 
 import { category, CategoryApi } from '@/utils/apis/category';
