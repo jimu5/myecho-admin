@@ -25,6 +25,9 @@ const MySider: React.FC = () => {
         minWidth: '150px',
         height: '100vh',
       }}
+      zeroWidthTriggerStyle={{
+        top: '10px',
+      }}
       >
       <Menu
         mode="inline"
