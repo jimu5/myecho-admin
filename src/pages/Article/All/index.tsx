@@ -1,17 +1,12 @@
 import React from 'react';
 import { Table } from 'antd';
-import { usePagination, useSafeState } from 'ahooks';
+import { usePagination } from 'ahooks';
 
 import { ArticleApi, article } from '@/utils/apis/article';
 
 import columns from './column';
-import { resolve } from 'path';
 
 const All: React.FC = () => {
-  // const [page, set_page] = useSafeState(1);
-  // const [page_size, set_page_size] = useSafeState(10);
-  // const [total, set_total] = useSafeState(0);
-  // const [data, set_data] = useSafeState<article[]>([]);
   async function getArticleList(params: {
     current: number;
     pageSize: number;
@@ -20,12 +15,11 @@ const All: React.FC = () => {
       page: params.current,
       page_size: params.pageSize,
     }).then((data: any) => {
-      return {total: data.total, list: data.data};
-    })
+      return { total: data.total, list: data.data };
+    });
   }
 
   const { data, loading, pagination } = usePagination(getArticleList);
-
 
   return (
     <div>
