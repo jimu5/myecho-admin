@@ -60,6 +60,9 @@ export class ArticleApi {
     static get(id: number) {
         return axios.get(`/articles/${id}`);
     }
+    static delete(id: number) {
+        return axios.delete(`/articles/${id}`);
+    }
     static patch(id: number, params: articleRequest) {
         return axios.patch(`/articles/${id}`, params);
     }
