@@ -56,7 +56,7 @@ const ArticleWrite: React.FC = () => {
   const [categoryTree, setCategoryTree] = useSafeState([]);
   const [articleEditCache, setArticleEditCache] =
     useLocalStorageState<ArticleLocalCache>('articleEditCache', {
-      defaultValue: {},
+      defaultValue: { status: 1 },
     });
   const [articleDetail, setArticleDetail] = useSafeState<article>(article_info);
 
