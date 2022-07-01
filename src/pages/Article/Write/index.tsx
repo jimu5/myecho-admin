@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import moment from 'moment';
 import Vditor from 'vditor';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useLocalStorageState, useRequest, useSafeState } from 'ahooks';
 import {
   Layout,
@@ -37,6 +37,7 @@ const { Option } = Select;
 var article_info: article; // 不安全的做法
 
 const ArticleWrite: React.FC = () => {
+  const navigate = useNavigate();
   const { id } = useParams();
   const article_id = id ? parseInt(id) : undefined;
   const { runAsync, loading } = useRequest(
@@ -151,21 +152,11 @@ const ArticleWrite: React.FC = () => {
       data = { ...data, ...articleEditCache, tag_ids };
       ArticleApi.create(data).then(() => {
         notification.success({ message: '保存成功' });
-        setArticleEditCache({} as article);
+        localStorage.removeItem("articleEditCache");
         vditor?.setValue('');
+        navigate('/admin/article/all');
       });
     }
-  };
-
-  const isStatusVisible = () => {
-    let checkVar = article_info || articleEditCache;
-    let visible = checkVar?.status
-      ? [2, 5].includes(checkVar.status)
-        ? 'none'
-        : 'block'
-      : 'block';
-    console.log(visible);
-    return visible;
   };
 
   return (
@@ -175,7 +166,7 @@ const ArticleWrite: React.FC = () => {
         <input
           placeholder="添加标题"
           className={s.articleTitle}
-          defaultValue={
+          value={
             article_info ? article_info?.title : articleEditCache.title
           }
           onChange={(event) => {
