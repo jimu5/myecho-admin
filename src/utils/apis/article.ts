@@ -11,14 +11,19 @@ export interface articleDetail {
 }
 
 // 文章状态
-export const articleStatus: {[key: number]: string} = {
-    1: '已发布',
-    2: '置顶',
-    3: '草稿',
-    4: '等待复审',
-    5: '仅自己可见',
-    6: '回收站',
-}
+export const articleStatus = new Map([
+    [1, '已发布'],
+    [2, '草稿'],
+    [3, '等待复审'],
+    [4, '回收站'],
+])
+
+// 文章可见性
+export const articleVisibility = new Map([
+    [1, '公开'],
+    [2, '置顶'],
+    [3, '私密'],
+])
 
 // 单个文章的结构
 export interface article extends baseReturn {
@@ -34,6 +39,7 @@ export interface article extends baseReturn {
     comment_count: number;
     post_time: string;
     status: number;
+    visibility: number;
     tags: tag[];
 }
 
@@ -47,6 +53,7 @@ export interface articleRequest {
     status?: number;
     password?: string;
     tag_ids?: number[];
+    visibility?: number;
 }
 
 export class ArticleApi {
@@ -60,10 +67,23 @@ export class ArticleApi {
     static get(id: number) {
         return axios.get(`/articles/${id}`);
     }
+    static get_no_read(id: number) {
+        return axios.get(`/articles/${id}?no_read=true`)
+    }
     static delete(id: number) {
         return axios.delete(`/articles/${id}`);
     }
     static patch(id: number, params: articleRequest) {
+        ArticleApi._set_param_default(params)
         return axios.patch(`/articles/${id}`, params);
+    }
+
+    static _set_param_default(params: articleRequest) {
+        if ((params.status == null) || !Array.from(articleStatus.keys()).includes(params.status)) {
+            params.status = 1
+        }
+        if ((params.visibility == null) || !Array.from(articleVisibility.keys()).includes(params.visibility)) {
+            params.visibility = 1
+        }
     }
 }

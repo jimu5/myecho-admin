@@ -3,8 +3,9 @@ import { usePagination } from 'ahooks';
 import { Space, Popconfirm, message, Table } from 'antd';
 import type { ColumnsType } from 'antd/lib/table';
 
-import { ArticleApi, article, articleStatus } from '@/utils/apis/article';
+import { ArticleApi, article, articleStatus, articleVisibility } from '@/utils/apis/article';
 import AdminNavLink from '@/routers/AdminNavlink';
+import { render } from '@testing-library/react';
 
 const All: React.FC = () => {
   async function getArticleList(params: {
@@ -32,6 +33,7 @@ const All: React.FC = () => {
       title: '分类',
       dataIndex: 'category',
       key: 'category',
+      render: (_, record) => <span>{record.category?.name}</span>
     },
     {
       title: '日期',
@@ -52,7 +54,13 @@ const All: React.FC = () => {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      render: (text: number) => <span>{articleStatus[text]}</span>,
+      render: (text: number) => <span>{articleStatus.get(text)}</span>
+    },
+    {
+      title: '可见性',
+      dataIndex: 'visibility',
+      key: 'visibility',
+      render: (_, record) => <span>{articleVisibility.get(record.visibility)}</span>
     },
     {
       title: '点赞数',
@@ -86,6 +94,7 @@ const All: React.FC = () => {
     <div>
       <Table
         columns={columns}
+        rowKey={(data) => data.id}
         dataSource={data?.list}
         loading={loading}
         pagination={{

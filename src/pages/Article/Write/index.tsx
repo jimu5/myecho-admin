@@ -22,7 +22,7 @@ import {
 } from '@ant-design/icons';
 import 'vditor/dist/index.css';
 
-import { article, articleRequest, ArticleApi } from '@/utils/apis/article';
+import { article, articleRequest, ArticleApi, articleStatus, articleVisibility } from '@/utils/apis/article';
 import { tag, TagApi } from '@/utils/apis/tag';
 import { category, CategoryApi } from '@/utils/apis/category';
 import { formatDateTime } from '@/utils/datetime';
@@ -43,7 +43,7 @@ const ArticleWrite: React.FC = () => {
   const { runAsync, loading } = useRequest(
     () =>
       article_id
-        ? ArticleApi.get(article_id).then((data) => {
+        ? ArticleApi.get_no_read(article_id).then((data) => {
             setArticleDetail(data as any);
             article_info = data as any;
           })
@@ -221,13 +221,7 @@ const ArticleWrite: React.FC = () => {
             <div className={s.postSettingDiv}>
               <div
                 className={s.postSettingSection}
-                style={{
-                  display: [2, 5].includes(
-                    article_info?.status || articleEditCache.status!
-                  )
-                    ? 'none'
-                    : 'block',
-                }}>
+                >
                 <KeyOutlined />
                 <span>状态：</span>
                 <Select
@@ -248,9 +242,9 @@ const ArticleWrite: React.FC = () => {
                       setEmpty(true);
                     }
                   }}>
-                  <Option value={1}>发布</Option>
-                  <Option value={3}>草稿</Option>
-                  <Option value={4}>等待复审</Option>
+                  {Array.from(articleStatus).map(item => (
+                    <Option value={item[0]} key={item[0]}>{item[1]}</Option>
+                  ))}
                 </Select>
               </div>
               <div className={s.postSettingSection}>
@@ -259,27 +253,23 @@ const ArticleWrite: React.FC = () => {
                 <Select
                   style={{ width: '60%' }}
                   defaultValue={
-                    // 状态如果为 发布 草稿 等待复审，显示为公开
-                    [2, 5].includes(
-                      article_info?.status || articleEditCache.status!
-                    )
-                      ? article_info?.status || articleEditCache.status
-                      : 1
+                    article_info?.status ? articleEditCache.status
+                    : 1
                   }
                   onChange={(value) => {
                     if (!article_info) {
                       setArticleEditCache({
                         ...articleEditCache,
-                        status: value,
+                        visibility: value,
                       });
                     } else {
-                      article_info.status = value;
+                      article_info.visibility = value;
                       setEmpty(true);
                     }
                   }}>
-                  <Option value={1}>公开</Option>
-                  <Option value={2}>置顶</Option>
-                  <Option value={5}>私密</Option>
+                  {Array.from(articleVisibility).map(item => (
+                    <Option value={item[0]} key={item[0]}>{item[1]}</Option>
+                  ))}
                 </Select>
               </div>
               <div className={s.postSettingSection}>

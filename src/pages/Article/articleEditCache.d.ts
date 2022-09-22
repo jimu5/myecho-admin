@@ -9,4 +9,5 @@ export default interface ArticleEditCache {
   password?: string;
   summary?: string;
   tags?: tag[];
+  visibility?: number;
 }
