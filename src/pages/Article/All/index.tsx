@@ -28,8 +28,7 @@ const All: React.FC = () => {
       title: '标题',
       dataIndex: 'title',
       key: 'title',
-      render: (text) => <a>{text}</a>,
-      fixed: "left"
+      render: (text) => <a>{text}</a>
     },
     {
       title: '分类',
