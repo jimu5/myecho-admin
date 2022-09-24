@@ -26,6 +26,7 @@ import { article, articleRequest, ArticleApi, articleStatus, articleVisibility }
 import { tag, TagApi } from '@/utils/apis/tag';
 import { category, CategoryApi } from '@/utils/apis/category';
 import { formatDateTime } from '@/utils/datetime';
+import { vditorUploadOptions } from '@/utils/vditorConfg';
 
 import ArticleLocalCache from '../articleEditCache';
 import s from './index.module.scss';
@@ -85,6 +86,8 @@ const ArticleWrite: React.FC = () => {
           vditor.setValue(article_info?.detail.content || '');
           setVd(vditor);
         });
+      } else {
+        article_info = null as any;
       }
     },
     [article_id, runAsync]
@@ -127,6 +130,7 @@ const ArticleWrite: React.FC = () => {
         setVd(vditor);
       },
       cache: { enable: useCache },
+      upload: vditorUploadOptions,
     });
     TagApi.getList().then((data) => {
       setTagData(data);
@@ -162,11 +166,11 @@ const ArticleWrite: React.FC = () => {
   return (
     <Layout>
       <Content className={s.content}>
-        <h1>撰写新文章</h1>
+          <h1>{article_info ? '编辑文章' : '撰写新文章'}</h1>
         <input
           placeholder="添加标题"
           className={s.articleTitle}
-          value={
+          defaultValue={
             article_info ? article_info?.title : articleEditCache.title
           }
           onChange={(event) => {
@@ -175,8 +179,11 @@ const ArticleWrite: React.FC = () => {
                 ...articleEditCache,
                 title: event.target.value,
               });
+              console.log("cache")
             } else {
               article_info.title = event.target.value;
+              setEmpty(true);
+              console.log("info")
             }
           }}></input>
         <div id="vditor" className="vditor" />

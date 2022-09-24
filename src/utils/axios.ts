@@ -9,7 +9,7 @@ const instance = axios.create({
   timeout: 10000,
 });
 
-const user = JSON.parse(localStorage.getItem('user') || '{}') as loginResponse ;
+export const user = JSON.parse(localStorage.getItem('user') || '{}') as loginResponse ;
 
 // 全局拦截器
 instance.interceptors.request.use(

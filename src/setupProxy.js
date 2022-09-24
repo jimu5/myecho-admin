@@ -8,5 +8,13 @@ module.exports = function (app) {
       ws: true,
       pathRewrite: {},
     })
+  )
+  app.use(
+    createProxyMiddleware('/mos/', {
+      target: 'http://localhost:2999',
+      changeOrigin: true,
+      ws: true,
+      pathRewrite: {},
+    })
   );
 };
