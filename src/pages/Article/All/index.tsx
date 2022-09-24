@@ -2,10 +2,11 @@ import React from 'react';
 import { usePagination } from 'ahooks';
 import { Space, Popconfirm, message, Table } from 'antd';
 import type { ColumnsType } from 'antd/lib/table';
+import dayjs from 'dayjs';
 
 import { ArticleApi, article, articleStatus, articleVisibility } from '@/utils/apis/article';
 import AdminNavLink from '@/routers/AdminNavlink';
-import { render } from '@testing-library/react';
+
 
 const All: React.FC = () => {
   async function getArticleList(params: {
@@ -28,6 +29,7 @@ const All: React.FC = () => {
       dataIndex: 'title',
       key: 'title',
       render: (text) => <a>{text}</a>,
+      fixed: "left"
     },
     {
       title: '分类',
@@ -36,9 +38,11 @@ const All: React.FC = () => {
       render: (_, record) => <span>{record.category?.name}</span>
     },
     {
-      title: '日期',
+      title: '发布时间',
       dataIndex: 'post_time',
+      width: 105,
       key: 'post_time',
+      render: (text: string) => <>{dayjs(text).format('YYYY-MM-DD HH:mm:ss')}</>
     },
     {
       title: '浏览',
@@ -70,6 +74,7 @@ const All: React.FC = () => {
     {
       title: '操作',
       key: 'action',
+      width: 110,
       render: (_, record) => (
         <Space size="middle">
           <AdminNavLink to={`article/write/${record.id}`}>编辑</AdminNavLink>
@@ -87,6 +92,7 @@ const All: React.FC = () => {
           </Popconfirm>
         </Space>
       ),
+      fixed: "right"
     },
   ];
 
@@ -103,6 +109,7 @@ const All: React.FC = () => {
           current: pagination.current,
           onChange: pagination.onChange,
         }}
+        scroll={{ x: 'max-content' }}
       />
     </div>
   );
