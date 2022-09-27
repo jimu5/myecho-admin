@@ -45,9 +45,9 @@ const ArticleWrite: React.FC = () => {
     () =>
       article_id
         ? ArticleApi.get_no_read(article_id).then((data) => {
-            setArticleDetail(data as any);
-            article_info = data as any;
-          })
+          setArticleDetail(data as any);
+          article_info = data as any;
+        })
         : Promise.resolve(),
     { manual: true }
   );
@@ -57,7 +57,7 @@ const ArticleWrite: React.FC = () => {
   const [categoryTree, setCategoryTree] = useSafeState([]);
   const [articleEditCache, setArticleEditCache] =
     useLocalStorageState<ArticleLocalCache>('articleEditCache', {
-      defaultValue: { status: 1 },
+      defaultValue: { status: 1, visibility: 1 },
     });
   const [articleDetail, setArticleDetail] = useSafeState<article>(article_info);
 
@@ -150,7 +150,8 @@ const ArticleWrite: React.FC = () => {
       data = { ...data, ...article_info, tag_ids };
       ArticleApi.patch(article_id, data).then(() => {
         notification.success({ message: '更新成功' });
-      });
+        navigate('/admin/article/all');
+      })
     } else {
       let tag_ids = articleEditCache.tags?.map((item) => item.id) || [];
       data = { ...data, ...articleEditCache, tag_ids };
@@ -159,18 +160,18 @@ const ArticleWrite: React.FC = () => {
         localStorage.removeItem("articleEditCache");
         vditor?.setValue('');
         navigate('/admin/article/all');
-      });
+      })
     }
   };
 
   return (
     <Layout>
       <Content className={s.content}>
-          <h1>{article_info ? '编辑文章' : '撰写新文章'}</h1>
+        <h1>{article_info ? '编辑文章' : '撰写新文章'}</h1>
         <input
           placeholder="添加标题"
           className={s.articleTitle}
-          defaultValue={
+          value={
             article_info ? article_info?.title : articleEditCache.title
           }
           onChange={(event) => {
@@ -179,11 +180,9 @@ const ArticleWrite: React.FC = () => {
                 ...articleEditCache,
                 title: event.target.value,
               });
-              console.log("cache")
             } else {
               article_info.title = event.target.value;
               setEmpty(true);
-              console.log("info")
             }
           }}></input>
         <div id="vditor" className="vditor" />
@@ -228,15 +227,13 @@ const ArticleWrite: React.FC = () => {
             <div className={s.postSettingDiv}>
               <div
                 className={s.postSettingSection}
-                >
+              >
                 <KeyOutlined />
                 <span>状态：</span>
                 <Select
                   style={{ width: '60%' }}
-                  defaultValue={
-                    article_info
-                      ? article_info?.status
-                      : articleEditCache.status || 1
+                  value={
+                    article_info ? article_info.status : articleEditCache.status
                   }
                   onChange={(value) => {
                     if (!article_info) {
@@ -259,9 +256,8 @@ const ArticleWrite: React.FC = () => {
                 <span>可见性：</span>
                 <Select
                   style={{ width: '60%' }}
-                  defaultValue={
-                    article_info?.status ? articleEditCache.status
-                    : 1
+                  value={
+                    article_info ? article_info.visibility : articleEditCache.visibility
                   }
                   onChange={(value) => {
                     if (!article_info) {
