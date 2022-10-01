@@ -12,17 +12,12 @@ export interface articleDetail {
 
 // 文章状态
 export const articleStatus = new Map([
-    [1, '已发布'],
-    [2, '草稿'],
-    [3, '等待复审'],
-    [4, '回收站'],
-])
-
-// 文章可见性
-export const articleVisibility = new Map([
     [1, '公开'],
     [2, '置顶'],
     [3, '私密'],
+    [4, '草稿'],
+    [5, '等待复审'],
+    [6, '回收站']
 ])
 
 // 单个文章的结构
@@ -61,6 +56,9 @@ export class ArticleApi {
     static getList(params: { page: number; page_size: number;}) {
         return axios.get('/articles', { params });
     }
+    static getAllList(params: { page: number; page_size: number}) {
+        return axios.get("all_articles", { params })
+    }
     static create(params: articleRequest) {
         return axios.post('articles', params);
     }
@@ -81,9 +79,6 @@ export class ArticleApi {
     static _set_param_default(params: articleRequest) {
         if ((params.status == null) || !Array.from(articleStatus.keys()).includes(params.status)) {
             params.status = 1
-        }
-        if ((params.visibility == null) || !Array.from(articleVisibility.keys()).includes(params.visibility)) {
-            params.visibility = 1
         }
     }
 }

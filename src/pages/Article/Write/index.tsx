@@ -22,7 +22,7 @@ import {
 } from '@ant-design/icons';
 import 'vditor/dist/index.css';
 
-import { article, articleRequest, ArticleApi, articleStatus, articleVisibility } from '@/utils/apis/article';
+import { article, articleRequest, ArticleApi, articleStatus } from '@/utils/apis/article';
 import { tag, TagApi } from '@/utils/apis/tag';
 import { category, CategoryApi } from '@/utils/apis/category';
 import { formatDateTime } from '@/utils/datetime';
@@ -247,30 +247,6 @@ const ArticleWrite: React.FC = () => {
                     }
                   }}>
                   {Array.from(articleStatus).map(item => (
-                    <Option value={item[0]} key={item[0]}>{item[1]}</Option>
-                  ))}
-                </Select>
-              </div>
-              <div className={s.postSettingSection}>
-                <EyeOutlined />
-                <span>可见性：</span>
-                <Select
-                  style={{ width: '60%' }}
-                  value={
-                    article_info ? article_info.visibility : articleEditCache.visibility
-                  }
-                  onChange={(value) => {
-                    if (!article_info) {
-                      setArticleEditCache({
-                        ...articleEditCache,
-                        visibility: value,
-                      });
-                    } else {
-                      article_info.visibility = value;
-                      setEmpty(true);
-                    }
-                  }}>
-                  {Array.from(articleVisibility).map(item => (
                     <Option value={item[0]} key={item[0]}>{item[1]}</Option>
                   ))}
                 </Select>

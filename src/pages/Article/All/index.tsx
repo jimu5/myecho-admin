@@ -4,7 +4,7 @@ import { Space, Popconfirm, message, Table } from 'antd';
 import type { ColumnsType } from 'antd/lib/table';
 import dayjs from 'dayjs';
 
-import { ArticleApi, article, articleStatus, articleVisibility } from '@/utils/apis/article';
+import { ArticleApi, article, articleStatus} from '@/utils/apis/article';
 import AdminNavLink from '@/routers/AdminNavlink';
 
 
@@ -13,7 +13,7 @@ const All: React.FC = () => {
     current: number;
     pageSize: number;
   }): Promise<{ total: number; list: article[] }> {
-    return ArticleApi.getList({
+    return ArticleApi.getAllList({
       page: params.current,
       page_size: params.pageSize,
     }).then((data: any) => {
@@ -58,12 +58,6 @@ const All: React.FC = () => {
       dataIndex: 'status',
       key: 'status',
       render: (text: number) => <span>{articleStatus.get(text)}</span>
-    },
-    {
-      title: '可见性',
-      dataIndex: 'visibility',
-      key: 'visibility',
-      render: (_, record) => <span>{articleVisibility.get(record.visibility)}</span>
     },
     {
       title: '点赞数',
