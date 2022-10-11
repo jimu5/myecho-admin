@@ -4,6 +4,7 @@ import baseReturn from "./baseReturn";
 export interface category extends baseReturn {
   name: string;
   father_id: number;
+  uuid: string;
 }
 
 export class CategoryApi {

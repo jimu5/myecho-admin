@@ -26,7 +26,7 @@ export interface article extends baseReturn {
     title: string;
     summary: string;
     detail: articleDetail;
-    category_id: number;
+    category_uuid: string;
     category?: category;
     is_allow_comment: boolean;
     read_count: number;
@@ -42,12 +42,12 @@ export interface articleRequest {
     title?: string;
     summary?: string;
     content?: string;
-    category_id?: number;
+    category_uuid?: string;
     is_allow_comment?: boolean;
     post_time?: string;
     status?: number;
     password?: string;
-    tag_ids?: number[];
+    tag_uuids?: string[];
     visibility?: number;
 }
 

@@ -5,7 +5,7 @@ export default interface ArticleEditCache {
   post_time?: string;
   is_allow_comment?: boolean;
   status?: number;
-  category_id?: number;
+  category_uuid?: string;
   password?: string;
   summary?: string;
   tags?: tag[];
