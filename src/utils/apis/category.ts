@@ -3,8 +3,8 @@ import baseReturn from "./baseReturn";
 
 export interface category extends baseReturn {
   name: string;
-  father_id: number;
-  uuid: string;
+  father_uid: string;
+  uid: string;
 }
 
 export class CategoryApi {
@@ -16,7 +16,7 @@ export class CategoryApi {
   static get(id: number) {
     return axios.get(`${CategoryApi.baseApiUrl}/${id}`);
   }
-  static create(params: { name: string; father_id: number | null }) {
+  static create(params: { name: string; father_uid: string | null }) {
     return axios.post(CategoryApi.baseApiUrl, params);
   }
   static patch(id: number, params: { name: string; father_id: number | null }) {

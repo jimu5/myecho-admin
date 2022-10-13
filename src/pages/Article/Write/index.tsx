@@ -97,20 +97,20 @@ const ArticleWrite: React.FC = () => {
     (data: any) => {
       const tree: any = [];
       data.forEach((item: category) => {
-        if (item.father_id === 0 || item.father_id === null) {
+        if (item.father_uid === "" || item.father_uid === null) {
           tree.push({
             title: item.name,
-            key: item.uuid,
-            value: item.uuid,
+            key: item.uid,
+            value: item.uid,
             children: [],
           });
         } else {
-          const parent = tree.find((i: any) => i.key === item.father_id);
+          const parent = tree.find((i: any) => i.key === item.father_uid);
           if (parent) {
             parent.children!.push({
               title: item.name,
-              key: item.uuid,
-              value: item.uuid,
+              key: item.uid,
+              value: item.uid,
               children: [],
             });
           }
@@ -146,15 +146,15 @@ const ArticleWrite: React.FC = () => {
     };
     // TODO: 这块逻辑后面要改下
     if (article_id) {
-      let tag_uuids = articleDetail.tags?.map((item) => item.uuid) || [];
-      data = { ...data, ...article_info, tag_uuids };
+      let tag_uids = articleDetail.tags?.map((item) => item.uid) || [];
+      data = { ...data, ...article_info, tag_uids };
       ArticleApi.patch(article_id, data).then(() => {
         notification.success({ message: '更新成功' });
         navigate('/admin/article/all');
       })
     } else {
-      let tag_uuids = articleEditCache.tags?.map((item) => item.uuid) || [];
-      data = { ...data, ...articleEditCache, tag_uuids };
+      let tag_uids = articleEditCache.tags?.map((item) => item.uid) || [];
+      data = { ...data, ...articleEditCache, tag_uids };
       ArticleApi.create(data).then(() => {
         notification.success({ message: '保存成功' });
         localStorage.removeItem("articleEditCache");
@@ -304,17 +304,17 @@ const ArticleWrite: React.FC = () => {
                 mode="multiple"
                 style={{ width: '100%' }}
                 value={Array.from(getEditArticle().tags || [], (tag) =>
-                  String(tag.uuid)
+                  String(tag.uid)
                 )}
                 onChange={(value) => {
                   let tags: tag[] = [];
                   value.forEach((TagID) => {
-                    tags.push({ uuid: TagID, name: '' } as tag);
+                    tags.push({ uid: TagID, name: '' } as tag);
                   });
                   setEditArticle({ tags });
                 }}>
                 {tagData.map((d) => (
-                  <Option key={d.uuid}>{d.name}</Option>
+                  <Option key={d.uid}>{d.name}</Option>
                 ))}
               </Select>
             </div>
@@ -323,11 +323,11 @@ const ArticleWrite: React.FC = () => {
               <span>分类: </span>
               <br />
               <TreeSelect
-                value={getEditArticle()?.category_uuid || null}
+                value={getEditArticle()?.category_uid || null}
                 treeData={categoryTree}
                 style={{ width: '100%' }}
                 onChange={(value) => {
-                  setEditArticle({ category_uuid: value });
+                  setEditArticle({ category_uid: value });
                 }}></TreeSelect>
             </div>
             <div className={s.bottomPostDiv}>

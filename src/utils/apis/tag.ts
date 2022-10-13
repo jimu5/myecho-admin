@@ -4,7 +4,7 @@ import baseReturn from "./baseReturn"
 export interface tag extends baseReturn {
   id: number;
   name: string;
-  uuid: string;
+  uid: string;
 }
 
 export class TagApi {

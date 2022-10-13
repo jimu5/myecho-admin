@@ -13,7 +13,7 @@ interface Props {
 
 interface inputCategoryType {
   name: string;
-  father_id: number;
+  father_uid: string;
 }
 
 const CreateBox: React.FC<Props> = ({ data, runAsync }) => {
@@ -23,7 +23,7 @@ const CreateBox: React.FC<Props> = ({ data, runAsync }) => {
   const onClickCreate = () => {
     let createData = {
       name: inputCategory.name,
-      father_id: inputCategory.father_id === 0? null : inputCategory.father_id,
+      father_uid: inputCategory.father_uid === ""? null : inputCategory.father_uid,
     }
     CategoryApi.create(createData).then(() => {
       notification.success({ message: '添加成功' });
@@ -42,13 +42,13 @@ const CreateBox: React.FC<Props> = ({ data, runAsync }) => {
           width: '200px',
         }}
         onChange={(value: string) => {
-          SetInputCategory({ ...inputCategory, father_id: Number(value) });
+          SetInputCategory({ ...inputCategory, father_uid: value });
         }}>
         <Option key="0">无父分类</Option>
         {data
-          .filter((item: category) => item.father_id === 0 || item.father_id === null)
+          .filter((item: category) => item.father_uid === "" || item.father_uid === null)
           .map((item: category) => (
-            <Option key={item.id}> {item.name} </Option>
+            <Option key={item.uid}> {item.name} </Option>
           ))}
       </Select>
       <p>分类名</p>

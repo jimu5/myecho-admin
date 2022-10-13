@@ -20,14 +20,14 @@ const Category: React.FC = () => {
     (data: any) => {
       const tree: DataNode[] = [];
       data.forEach((item: category) => {
-        if (item.father_id === 0 || item.father_id === null) {
+        if (item.father_uid === "" || item.father_uid === null) {
           tree.push({
             title: item.name,
-            key: item.id,
+            key: item.uid,
             children: [],
           });
         } else {
-          const parent = tree.find((i: any) => i.key === item.father_id);
+          const parent = tree.find((i: any) => i.key === item.father_uid);
           if (parent) {
             parent.children!.push({
               title: item.name,
