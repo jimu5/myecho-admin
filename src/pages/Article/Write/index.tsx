@@ -14,7 +14,6 @@ import {
 } from 'antd';
 import {
   KeyOutlined,
-  EyeOutlined,
   ClockCircleOutlined,
   CommentOutlined,
   TagsOutlined,
@@ -25,8 +24,8 @@ import 'vditor/dist/index.css';
 import { article, articleRequest, ArticleApi, articleStatus } from '@/utils/apis/article';
 import { tag, TagApi } from '@/utils/apis/tag';
 import { category, CategoryApi } from '@/utils/apis/category';
-import { formatDateTime } from '@/utils/datetime';
 import { vditorUploadOptions } from '@/utils/vditorConfg';
+import { myLocale } from '@/utils/config';
 
 import ArticleLocalCache from '../articleEditCache';
 import s from './index.module.scss';
@@ -256,6 +255,8 @@ const ArticleWrite: React.FC = () => {
                 <span>发布时间</span>
                 <DatePicker
                   showTime
+                  format="YYYY-MM-DDTHH:mm:ssZ"
+                  locale={myLocale.DatePicker}
                   defaultValue={moment(
                     article_info?.post_time || articleEditCache.post_time
                   )}
@@ -263,10 +264,10 @@ const ArticleWrite: React.FC = () => {
                     if (!article_info) {
                       setArticleEditCache({
                         ...articleEditCache,
-                        post_time: formatDateTime(dateString),
+                        post_time: dateString,
                       });
                     } else {
-                      article_info.post_time = formatDateTime(dateString);
+                      article_info.post_time = dateString;
                     }
                   }}
                 />
