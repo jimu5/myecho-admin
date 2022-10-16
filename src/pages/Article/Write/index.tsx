@@ -257,7 +257,7 @@ const ArticleWrite: React.FC = () => {
                   showTime
                   format="YYYY-MM-DDTHH:mm:ssZ"
                   locale={myLocale.DatePicker}
-                  defaultValue={moment(
+                  value={moment(
                     article_info?.post_time || articleEditCache.post_time
                   )}
                   onChange={(_, dateString) => {
@@ -268,6 +268,7 @@ const ArticleWrite: React.FC = () => {
                       });
                     } else {
                       article_info.post_time = dateString;
+                      setEmpty(true);
                     }
                   }}
                 />
