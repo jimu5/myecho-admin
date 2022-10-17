@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Layout, Menu } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useSafeState } from 'ahooks';
+import { useSafeState, useUpdate } from 'ahooks';
 
 import menuConfig from './menuConfig';
 
@@ -11,6 +11,7 @@ const { Sider } = Layout;
 const MySider: React.FC = () => {
 
   const navigate = useNavigate();
+  const update = useUpdate();
   const location = useLocation();  // 这里的目的是为了去掉最前面的admin
   const [locationSplit, setLocationSplit] = useSafeState<string[]>([]);
 
@@ -39,7 +40,7 @@ const MySider: React.FC = () => {
       >
       <Menu
         mode="inline"
-        openKeys={locationSplit}
+        defaultOpenKeys={locationSplit}
         selectedKeys={[locationSplit.join('/')]}
 
         items={menuConfig}
