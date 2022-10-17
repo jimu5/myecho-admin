@@ -1,8 +1,8 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import moment from 'moment';
 import Vditor from 'vditor';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useLocalStorageState, useRequest, useSafeState } from 'ahooks';
+import { useLocalStorageState, useRequest, useSafeState, useUpdate } from 'ahooks';
 import {
   Layout,
   Card,
@@ -50,7 +50,8 @@ const ArticleWrite: React.FC = () => {
         : Promise.resolve(),
     { manual: true }
   );
-  const [, setEmpty] = useSafeState(false); // TODO: 临时用来刷新组件的，需要和上面的article_info一起改
+  const update = useUpdate();
+  const [saveArticleAlias, SetSaveArticleAlias] = useSafeState(false);
   const [vditor, setVd] = React.useState<Vditor>();
   const [tagData, setTagData] = useSafeState<tag[]>([]);
   const [categoryTree, setCategoryTree] = useSafeState([]);
@@ -73,8 +74,8 @@ const ArticleWrite: React.FC = () => {
       // TODO: 先使用 article_info
       article_info = { ...article_info, ...values };
       return;
-    }
-    setArticleEditCache({ ...articleEditCache, ...values });
+    };
+    setArticleEditCache({...articleEditCache, ...values});
   };
 
   const fillArticle = useCallback(
@@ -120,7 +121,7 @@ const ArticleWrite: React.FC = () => {
     [setCategoryTree]
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     const useCache = Boolean(!article_id);
     const vditor = new Vditor('vditor', {
       height: window.innerHeight / 2,
@@ -138,6 +139,12 @@ const ArticleWrite: React.FC = () => {
       buildTree(data);
     });
   }, [fillArticle, article_id, setTagData, buildTree]);
+
+  useEffect(() => {
+    if (saveArticleAlias) {
+      saveArticle()
+    }
+  }, [articleEditCache, saveArticleAlias])
 
   const saveArticle = () => {
     let data: articleRequest = {
@@ -171,7 +178,7 @@ const ArticleWrite: React.FC = () => {
           placeholder="添加标题"
           className={s.articleTitle}
           value={
-            article_info ? article_info?.title : articleEditCache.title
+            article_info? article_info.title : articleEditCache.title
           }
           onChange={(event) => {
             if (!article_info) {
@@ -181,7 +188,7 @@ const ArticleWrite: React.FC = () => {
               });
             } else {
               article_info.title = event.target.value;
-              setEmpty(true);
+              update();
             }
           }}></input>
         <div id="vditor" className="vditor" />
@@ -217,8 +224,8 @@ const ArticleWrite: React.FC = () => {
               <button
                 className={s.savePost}
                 onClick={() => {
-                  setArticleEditCache({ ...articleEditCache, status: 3 });
-                  saveArticle();
+                  setEditArticle({status: 4});
+                  SetSaveArticleAlias(true);
                 }}>
                 保存草稿
               </button>
@@ -242,7 +249,7 @@ const ArticleWrite: React.FC = () => {
                       });
                     } else {
                       article_info.status = value;
-                      setEmpty(true);
+                      update();
                     }
                   }}>
                   {Array.from(articleStatus).map(item => (
@@ -268,7 +275,7 @@ const ArticleWrite: React.FC = () => {
                       });
                     } else {
                       article_info.post_time = dateString;
-                      setEmpty(true);
+                      update();
                     }
                   }}
                 />
