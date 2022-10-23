@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Layout, Menu } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useSafeState, useUpdate } from 'ahooks';
+import { useSafeState } from 'ahooks';
 
 import menuConfig from './menuConfig';
 
@@ -11,14 +11,12 @@ const { Sider } = Layout;
 const MySider: React.FC = () => {
 
   const navigate = useNavigate();
-  const update = useUpdate();
   const location = useLocation();  // 这里的目的是为了去掉最前面的admin
   const [locationSplit, setLocationSplit] = useSafeState<string[]>([]);
 
   useEffect(() => {
-    console.log(location.pathname)
     setLocationSplit(location.pathname.split('/').slice(2));
-  }, [location])
+  }, [location, setLocationSplit])
 
   return (
     <Sider

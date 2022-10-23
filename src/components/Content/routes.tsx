@@ -9,6 +9,7 @@ const elements = {
     tag: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Article/Tag')),
     category: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Article/Category')),
   },
+  setting: lazy(()=> import(/* webpackPrefetch:true */ '@/pages/Setting'))
 };
 
 const contentRoutes = [
@@ -40,6 +41,10 @@ const contentRoutes = [
       }
     ],
   },
+  {
+    path: 'setting',
+    element: <elements.setting />,
+  }
 ];
 
 export default contentRoutes;

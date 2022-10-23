@@ -1,5 +1,5 @@
 import React from 'react';
-import { ControlOutlined, PushpinOutlined } from '@ant-design/icons';
+import { ControlOutlined, PushpinOutlined, SettingOutlined } from '@ant-design/icons';
 
 const menuConfig = [
   {
@@ -30,6 +30,11 @@ const menuConfig = [
       },
     ],
   },
+  {
+    key: 'setting',
+    icon: <SettingOutlined />,
+    label: '站点设置'
+  }
 ];
 
 export default menuConfig;

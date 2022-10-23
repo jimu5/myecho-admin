@@ -75,7 +75,7 @@ const ArticleWrite: React.FC = () => {
       article_info = { ...article_info, ...values };
       return;
     };
-    setArticleEditCache({...articleEditCache, ...values});
+    setArticleEditCache({ ...articleEditCache, ...values });
   };
 
   const fillArticle = useCallback(
@@ -121,6 +121,30 @@ const ArticleWrite: React.FC = () => {
     [setCategoryTree]
   );
 
+  const saveArticle = useCallback(() => {
+    let data: articleRequest = {
+      content: vditor?.getValue(),
+    };
+    // TODO: 这块逻辑后面要改下
+    if (article_id) {
+      let tag_uids = articleDetail.tags?.map((item) => item.uid) || [];
+      data = { ...data, ...article_info, tag_uids };
+      ArticleApi.patch(article_id, data).then(() => {
+        notification.success({ message: '更新成功' });
+        navigate('/admin/article/all');
+      })
+    } else {
+      let tag_uids = articleEditCache.tags?.map((item) => item.uid) || [];
+      data = { ...data, ...articleEditCache, tag_uids };
+      ArticleApi.create(data).then(() => {
+        notification.success({ message: '保存成功' });
+        localStorage.removeItem("articleEditCache");
+        vditor?.setValue('');
+        navigate('/admin/article/all');
+      })
+    }
+  }, [articleDetail.tags, articleEditCache, article_id, navigate, vditor])
+
   useEffect(() => {
     const useCache = Boolean(!article_id);
     const vditor = new Vditor('vditor', {
@@ -144,31 +168,7 @@ const ArticleWrite: React.FC = () => {
     if (saveArticleAlias) {
       saveArticle()
     }
-  }, [articleEditCache, saveArticleAlias])
-
-  const saveArticle = () => {
-    let data: articleRequest = {
-      content: vditor?.getValue(),
-    };
-    // TODO: 这块逻辑后面要改下
-    if (article_id) {
-      let tag_uids = articleDetail.tags?.map((item) => item.uid) || [];
-      data = { ...data, ...article_info, tag_uids };
-      ArticleApi.patch(article_id, data).then(() => {
-        notification.success({ message: '更新成功' });
-        navigate('/admin/article/all');
-      })
-    } else {
-      let tag_uids = articleEditCache.tags?.map((item) => item.uid) || [];
-      data = { ...data, ...articleEditCache, tag_uids };
-      ArticleApi.create(data).then(() => {
-        notification.success({ message: '保存成功' });
-        localStorage.removeItem("articleEditCache");
-        vditor?.setValue('');
-        navigate('/admin/article/all');
-      })
-    }
-  };
+  }, [articleEditCache, saveArticleAlias, saveArticle])
 
   return (
     <Layout>
@@ -178,7 +178,7 @@ const ArticleWrite: React.FC = () => {
           placeholder="添加标题"
           className={s.articleTitle}
           value={
-            article_info? article_info.title : articleEditCache.title
+            article_info ? article_info.title : articleEditCache.title
           }
           onChange={(event) => {
             if (!article_info) {
@@ -224,7 +224,7 @@ const ArticleWrite: React.FC = () => {
               <button
                 className={s.savePost}
                 onClick={() => {
-                  setEditArticle({status: 4});
+                  setEditArticle({ status: 4 });
                   SetSaveArticleAlias(true);
                 }}>
                 保存草稿
