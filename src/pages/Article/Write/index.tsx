@@ -143,7 +143,7 @@ const ArticleWrite: React.FC = () => {
         navigate('/admin/article/all');
       })
     }
-  }, [articleDetail.tags, articleEditCache, article_id, navigate, vditor])
+  }, [articleDetail?.tags, articleEditCache, article_id, navigate, vditor])
 
   useEffect(() => {
     const useCache = Boolean(!article_id);
