@@ -2,14 +2,15 @@ import React, { lazy } from 'react';
 
 const elements = {
   article: {
-    write: lazy(
-      () => import(/* webpackPrefetch:true */ '@/pages/Article/Write')
-    ),
+    write: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Article/Write')),
     all: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Article/All')),
     tag: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Article/Tag')),
     category: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Article/Category')),
   },
-  setting: lazy(()=> import(/* webpackPrefetch:true */ '@/pages/Setting'))
+  link: {
+    all: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Link/ALL')),
+  },
+  setting: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Setting')),
 };
 
 const contentRoutes = [
@@ -40,6 +41,15 @@ const contentRoutes = [
         element: <elements.article.category />,
       }
     ],
+  },
+  {
+    path: 'link',
+    children: [
+      {
+        path: 'all',
+        element: <elements.link.all />,
+      },
+    ]
   },
   {
     path: 'setting',

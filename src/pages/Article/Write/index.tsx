@@ -159,7 +159,7 @@ const ArticleWrite: React.FC = () => {
     TagApi.getList().then((data) => {
       setTagData(data);
     });
-    CategoryApi.getList().then((data) => {
+    CategoryApi.getArticleList().then((data) => {
       buildTree(data);
     });
   }, [fillArticle, article_id, setTagData, buildTree]);

@@ -25,7 +25,7 @@ const CreateBox: React.FC<Props> = ({ data, runAsync }) => {
       name: inputCategory.name,
       father_uid: inputCategory.father_uid === ""? null : inputCategory.father_uid,
     }
-    CategoryApi.create(createData).then(() => {
+    CategoryApi.createArticle(createData).then(() => {
       notification.success({ message: '添加成功' });
       runAsync();
     });

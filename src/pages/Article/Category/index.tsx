@@ -9,7 +9,7 @@ import CreateBox from './create_box';
 
 const Category: React.FC = () => {
   const { data, runAsync } = useRequest<category[], any>(() =>
-    CategoryApi.getList().then((data) => {
+    CategoryApi.getArticleList().then((data) => {
       buildTree(data);
       return data;
     })
