@@ -2,7 +2,7 @@ import React from 'react';
 import { Select, Button, Input, notification } from 'antd';
 import { useSafeState } from 'ahooks';
 
-import { category, CategoryApi } from '@/utils/apis/category';
+import { category } from '@/utils/apis/category';
 
 const { Option } = Select;
 
@@ -45,7 +45,7 @@ const CreateBox: React.FC<Props> = ({ data, runAsync, CreateMethod }) => {
         onChange={(value: string) => {
           SetInputCategory({ ...inputCategory, father_uid: value });
         }}>
-        <Option key="0">无父分类</Option>
+        <Option key="">无父分类</Option>
         {data
           .filter((item: category) => item.father_uid === "" || item.father_uid === null)
           .map((item: category) => (

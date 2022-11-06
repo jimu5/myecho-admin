@@ -3,7 +3,7 @@ import { useRequest, useSafeState } from 'ahooks';
 import { Tree } from 'antd';
 import type { DataNode } from 'antd/lib/tree';
 
-import { CategoryApi, category } from '@/utils/apis/category';
+import { category } from '@/utils/apis/category';
 
 import CreateBox from './create_box';
 
