@@ -9,6 +9,7 @@ const elements = {
   },
   link: {
     all: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Link/ALL')),
+    category: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Link/Category')),
   },
   setting: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Setting')),
 };
@@ -49,6 +50,10 @@ const contentRoutes = [
         path: 'all',
         element: <elements.link.all />,
       },
+      {
+        path: 'category',
+        element: <elements.link.category />,
+      }
     ]
   },
   {

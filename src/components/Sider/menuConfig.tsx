@@ -38,6 +38,10 @@ const menuConfig = [
       {
         key: 'link/all',
         label: '所有链接',
+      },
+      {
+        key: 'link/category',
+        label: '链接分类',
       }
     ]
   },

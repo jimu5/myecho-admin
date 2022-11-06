@@ -8,7 +8,8 @@ const { Option } = Select;
 
 interface Props {
   data: category[];
-  runAsync: Function
+  runAsync: Function;
+  CreateMethod(arg: any): Promise<any>;
 }
 
 interface inputCategoryType {
@@ -16,7 +17,7 @@ interface inputCategoryType {
   father_uid: string;
 }
 
-const CreateBox: React.FC<Props> = ({ data, runAsync }) => {
+const CreateBox: React.FC<Props> = ({ data, runAsync, CreateMethod }) => {
   const [inputCategory, SetInputCategory] =
     useSafeState<inputCategoryType>(Object);
 
@@ -25,7 +26,7 @@ const CreateBox: React.FC<Props> = ({ data, runAsync }) => {
       name: inputCategory.name,
       father_uid: inputCategory.father_uid === ""? null : inputCategory.father_uid,
     }
-    CategoryApi.createArticle(createData).then(() => {
+    CreateMethod(createData).then(() => {
       notification.success({ message: '添加成功' });
       runAsync();
     });
