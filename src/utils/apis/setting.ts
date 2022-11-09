@@ -5,6 +5,7 @@ export interface settingModel extends baseReturn {
     key: string,
     value: string,
     type: string,
+    is_system: boolean
 }
 
 export class SettingApi {

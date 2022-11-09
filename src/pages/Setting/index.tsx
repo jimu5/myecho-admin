@@ -19,6 +19,13 @@ const Setting: React.FC = () => {
       title: '设置 key',
       dataIndex: 'key',
       width: 140,
+      fieldProps: (form, {entity, }) => {
+        if (entity.is_system) {
+          return {
+            disabled: true,
+          }
+        }
+      }
     },
     {
       title: '设置 type',
