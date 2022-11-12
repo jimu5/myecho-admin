@@ -1,4 +1,4 @@
-import { user } from "./axios";
+import { user } from "./myaxios";
 
 export var vditorUploadOptions = {
     url: "/mos/upload",

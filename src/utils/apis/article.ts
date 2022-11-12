@@ -1,4 +1,4 @@
-import axios from '../axios';
+import axios from '../myaxios';
 import { user } from './user';
 import baseReturn from './baseReturn';
 import { tag } from './tag';

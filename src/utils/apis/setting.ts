@@ -1,5 +1,5 @@
 import baseReturn from "./baseReturn";
-import axios from "../axios";
+import axios from "../myaxios";
 
 export interface settingModel extends baseReturn {
     key: string,

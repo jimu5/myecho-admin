@@ -1,4 +1,4 @@
-import axios from "../axios";
+import axios from "../myaxios";
 import baseReturn from "./baseReturn"
 
 export interface tag extends baseReturn {

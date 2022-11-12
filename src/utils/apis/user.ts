@@ -1,4 +1,4 @@
-import axios from '../axios';
+import axios from '../myaxios';
 
 export interface user {
     id: number;
