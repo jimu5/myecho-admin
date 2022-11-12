@@ -1,9 +1,14 @@
 import React from 'react';
-import { ControlOutlined, PushpinOutlined, SettingOutlined, LinkOutlined, FileOutlined } from '@ant-design/icons';
+import { ControlOutlined, PushpinOutlined, SettingOutlined, LinkOutlined, FileOutlined, FundProjectionScreenOutlined } from '@ant-design/icons';
 
 const menuConfig = [
   {
     key: '/',
+    icon: <FundProjectionScreenOutlined />,
+    label: '查看站点',
+  },
+  {
+    key: '/admin',
     icon: <ControlOutlined />,
     label: '仪表盘',
   },
