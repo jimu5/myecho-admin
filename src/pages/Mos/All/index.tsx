@@ -36,7 +36,7 @@ const FileAll: React.FC = () => {
       title: '链接',
       dataIndex: 'link',
       readonly: true,
-      render: (_, record) => <><a href={record.url} target="_blank">{record.url}</a></>
+      render: (_, record) => <><a href={record.url} target="_blank" rel="noreferrer">{record.url}</a></>
     },
     {
       title: '预览',
@@ -99,6 +99,7 @@ const FileAll: React.FC = () => {
   ];
   return (
     <div>
+
       <EditableProTable
         columns={columns}
         rowKey={(data) => data.id}

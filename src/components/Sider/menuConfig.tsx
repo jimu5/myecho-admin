@@ -53,6 +53,10 @@ const menuConfig = [
       {
         key: 'mos/files',
         label: "所有文件"
+      },
+      {
+        key: 'mos/files/upload',
+        label: '上传文件'
       }
     ]
   },
