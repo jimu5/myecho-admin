@@ -30,18 +30,33 @@ const FileAll: React.FC = () => {
     {
       title: '文件名',
       dataIndex: 'full_name',
+      ellipsis: {
+        showTitle: false,
+      },
       render: (_, record) => <span>{record.full_name}</span>
     },
     {
       title: '链接',
       dataIndex: 'link',
       readonly: true,
-      render: (_, record) => <><a href={record.url} target="_blank" rel="noreferrer">{record.url}</a></>
+      width: 130,
+      render: (_, record) =>
+        <Space>
+          <a href={record.url} target="_blank" rel="noreferrer">打开</a>
+          <Button
+            size="small"
+            onClick={() => {
+              navigator.clipboard.writeText(`${document.location.protocol}//${document.location.hostname}:${document.location.port}${record.url}`);
+              message.success("复制成功")
+            }}
+          >复制链接</Button>
+        </Space>
     },
     {
       title: '预览',
       dataIndex: 'url',
       readonly: true,
+      width: 200,
       render: (_, record) => <span>{isAssetTypeAnImage(record.extension_name) ?
         <Image src={record.url}></Image> :
         <a href={record.url}><PaperClipOutlined />{record.full_name}</a>}</span>
@@ -65,13 +80,7 @@ const FileAll: React.FC = () => {
       valueType: 'option',
       render: (text, record, _, action) => (
         <Space size="middle">
-          <Button
-            size="small"
-            onClick={() => {
-              navigator.clipboard.writeText(`${document.location.protocol}//${document.location.hostname}:${document.location.port}${record.url}`);
-              message.success("复制成功")
-            }}
-          >复制链接</Button>
+
           <a
             key="editable"
             onClick={() => {

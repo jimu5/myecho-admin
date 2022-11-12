@@ -111,6 +111,7 @@ const Setting: React.FC = () => {
         style={{
           paddingTop: "20px"
         }}
+        scroll={{ x: 'max-content' }}
       ></EditableProTable>
     </div>
 
