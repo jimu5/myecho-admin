@@ -11,6 +11,9 @@ const elements = {
     all: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Link/ALL')),
     category: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Link/Category')),
   },
+  mos: {
+    all: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Mos/All/index'))
+  },
   setting: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Setting')),
 };
 
@@ -53,6 +56,15 @@ const contentRoutes = [
       {
         path: 'category',
         element: <elements.link.category />,
+      }
+    ]
+  },
+  {
+    path: 'mos',
+    children: [
+      {
+        path: 'files',
+        element: <elements.mos.all />
       }
     ]
   },

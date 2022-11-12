@@ -1,5 +1,5 @@
 import React from 'react';
-import { ControlOutlined, PushpinOutlined, SettingOutlined, LinkOutlined } from '@ant-design/icons';
+import { ControlOutlined, PushpinOutlined, SettingOutlined, LinkOutlined, FileOutlined } from '@ant-design/icons';
 
 const menuConfig = [
   {
@@ -42,6 +42,17 @@ const menuConfig = [
       {
         key: 'link/category',
         label: '链接分类',
+      }
+    ]
+  },
+  {
+    key: 'mos',
+    icon: <FileOutlined />,
+    label: '文件管理',
+    children: [
+      {
+        key: 'mos/files',
+        label: "所有文件"
       }
     ]
   },
