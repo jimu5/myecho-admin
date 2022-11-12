@@ -5,7 +5,8 @@ export interface settingModel extends baseReturn {
     key: string,
     value: string,
     type: string,
-    is_system: boolean
+    is_system: boolean,
+    description: string
 }
 
 export class SettingApi {
@@ -20,7 +21,7 @@ export class SettingApi {
     static create(params: settingModel) {
         return axios.post(SettingApi.baseApiUrl, params)
     }
-    static updateValue(key: string, value: String) {
+    static updateValue(key: string, value: String, description: string) {
         return axios.patch(`${SettingApi.baseApiUrl}/${key}`, {value: value})
     }
     static delete(key: string) {

@@ -28,6 +28,17 @@ const Setting: React.FC = () => {
       }
     },
     {
+      title: '描述',
+      dataIndex: 'description',
+      fieldProps: (form, {entity, }) => {
+        if (entity.is_system) {
+          return {
+            disabled: true,
+          }
+        }
+      }
+    },
+    {
       title: '设置 type',
       dataIndex: 'type',
       width: 100,
@@ -87,7 +98,7 @@ const Setting: React.FC = () => {
           type: 'single',
           editableKeys,
           onSave: async (rowKey, data, row) => {
-              SettingApi.updateValue(data.key, data.value).then(
+              SettingApi.updateValue(data.key, data.value, data.description).then(
                 message.success("保存成功")
               )
           },
