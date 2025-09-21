@@ -92,8 +92,8 @@ const Setting: React.FC = () => {
       <EditableProTable
         rowKey="id"
         columns={columns}
-        value={dataSource}
-        onChange={setDataSource}
+        value={dataSource || []}
+        onChange={(values) => setDataSource(values as settingModel[])}
         editable={{
           type: 'single',
           editableKeys,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ControlOutlined, PushpinOutlined, SettingOutlined, LinkOutlined, FileOutlined, FundProjectionScreenOutlined } from '@ant-design/icons';
+import { ControlOutlined, PushpinOutlined, SettingOutlined, LinkOutlined, FileOutlined, FundProjectionScreenOutlined, AppstoreOutlined } from '@ant-design/icons';
 
 const menuConfig = [
   {
@@ -69,6 +69,11 @@ const menuConfig = [
     key: 'setting',
     icon: <SettingOutlined />,
     label: '站点设置'
+  },
+  {
+    key: 'theme',
+    icon: <AppstoreOutlined />,
+    label: '主题管理'
   }
 ];
 

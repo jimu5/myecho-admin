@@ -16,6 +16,7 @@ const elements = {
     upload: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Mos/Upload')),
   },
   setting: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Setting')),
+  theme: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Theme')),
 };
 
 const contentRoutes = [
@@ -76,6 +77,10 @@ const contentRoutes = [
   {
     path: 'setting',
     element: <elements.setting />,
+  },
+  {
+    path: 'theme',
+    element: <elements.theme />,
   }
 ];
 

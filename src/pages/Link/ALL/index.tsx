@@ -78,8 +78,8 @@ const LinkALL: React.FC = () => {
       <EditableProTable
         rowKey="id"
         columns={columns}
-        value={dataSource}
-        onChange={setDataSource}
+        value={dataSource || []}
+      onChange={(values) => setDataSource(values as Link[])}
         editable={{
           type: 'single',
           editableKeys,
