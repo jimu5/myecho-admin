@@ -59,8 +59,8 @@
     "@reduxjs/toolkit": "^1.8.1",
     "customize-cra": "^1.0.0",
     "http-proxy-middleware": "^2.0.6",
-    "node-sass": "^7.0.1",
     "react-app-rewired": "^2.2.1",
+    "sass": "^1.100.0",
     "ts-loader": "^9.5.4",
     "webpack-cli": "^6.0.1"
   },

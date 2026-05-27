@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, message } from 'antd';
+import { Modal } from 'antd';
 import type { themeModel } from '@/utils/apis/theme';
 
 interface ModalPreviewProps {

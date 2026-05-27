@@ -38,6 +38,18 @@ export class ThemeApi {
     return axios.post(ThemeApi.baseApiUrl, params);
   }
 
+  // 上传主题压缩包
+  static upload(file: File | Blob) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return axios.post(`${ThemeApi.baseApiUrl}/upload`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      timeout: 30000,
+    });
+  }
+
   // 更新主题
   static update(id: number, params: Partial<themeModel>) {
     return axios.patch(`${ThemeApi.baseApiUrl}/${id}`, params);

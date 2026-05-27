@@ -1,1 +1,73 @@
 @import '~antd/dist/antd.css';
+
+:root {
+  --admin-bg: #f5f7fb;
+  --admin-panel: #ffffff;
+  --admin-border: #e6eaf0;
+  --admin-text: #1f2937;
+  --admin-muted: #7b8794;
+  --admin-primary: #2563eb;
+}
+
+body {
+  background: var(--admin-bg);
+  color: var(--admin-text);
+}
+
+.ant-layout {
+  background: var(--admin-bg);
+}
+
+.ant-layout-header {
+  border-bottom: 1px solid var(--admin-border);
+  box-shadow: 0 1px 10px rgba(31, 41, 55, 0.04);
+}
+
+.ant-layout-sider {
+  border-right: 1px solid var(--admin-border);
+  box-shadow: 4px 0 18px rgba(31, 41, 55, 0.04);
+}
+
+.ant-menu-inline {
+  border-right: 0;
+}
+
+.ant-card {
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(31, 41, 55, 0.06);
+}
+
+.theme-page {
+  padding-bottom: 32px;
+}
+
+.theme-page__summary {
+  margin-bottom: 16px;
+}
+
+.theme-page__upload {
+  margin-bottom: 16px;
+}
+
+.theme-page__upload .ant-upload.ant-upload-drag {
+  border-color: #c9d8f8;
+  background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+}
+
+.theme-page__toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.theme-page__table {
+  background: var(--admin-panel);
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 8px 24px rgba(31, 41, 55, 0.06);
+}
+
+.theme-page__muted {
+  color: var(--admin-muted);
+  font-size: 12px;
+}

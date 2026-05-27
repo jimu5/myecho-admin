@@ -1,5 +1,7 @@
 import React from 'react';
-import { message, Popconfirm, Space, Button } from 'antd';
+import { Button, Card, Col, message, Popconfirm, Row, Space, Statistic, Tag, Tooltip, Upload } from 'antd';
+import type { UploadProps } from 'antd';
+import { InboxOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
 import { EditableProTable } from '@ant-design/pro-table';
 import type { ProColumns } from '@ant-design/pro-components';
 import { useRequest, useSafeState } from 'ahooks';
@@ -18,11 +20,44 @@ const Theme: React.FC = () => {
   const [openModalPreview, setOpenModalPreview] = useSafeState(false);
   const [currentTheme, setCurrentTheme] = useSafeState<themeModel | null>(null);
 
+  const { runAsync, loading } = useRequest(
+    () => ThemeApi.getAll().then((data: any) => {
+      setDataSource(data);
+    })
+  );
+
+  const activeTheme = dataSource?.find((theme) => theme.is_active);
+  const uploadProps: UploadProps = {
+    accept: '.zip',
+    showUploadList: false,
+    customRequest: async ({ file, onError, onSuccess }) => {
+      try {
+        await ThemeApi.upload(file as File);
+        message.success('主题包上传成功');
+        await runAsync();
+        onSuccess?.('ok');
+      } catch (error) {
+        message.error('主题包上传失败');
+        onError?.(error as Error);
+      }
+    },
+  };
+
   const columns: ProColumns<themeModel>[] = [
     {
       title: '主题名称',
       dataIndex: 'name',
-      width: 140,
+      width: 180,
+      render: (_, record) => (
+        <Space direction="vertical" size={2}>
+          <Space>
+            <strong>{record.display_name}</strong>
+            {record.is_active && <Tag color="green">启用中</Tag>}
+            {record.is_default && <Tag>默认</Tag>}
+          </Space>
+          <span className="theme-page__muted">{record.name}</span>
+        </Space>
+      ),
       fieldProps: (form, { entity }) => {
         if (entity.is_default) {
           return {
@@ -34,6 +69,7 @@ const Theme: React.FC = () => {
     {
       title: '显示名称',
       dataIndex: 'display_name',
+      hideInTable: true,
       fieldProps: (form, { entity }) => {
         if (entity.is_default) {
           return {
@@ -66,26 +102,9 @@ const Theme: React.FC = () => {
     {
       title: '状态',
       dataIndex: 'is_active',
-      valueType: 'switch',
       width: 100,
       render: (dom: React.ReactNode, record) => {
-        return record.is_active ? '已激活' : '未激活';
-      },
-      fieldProps: (form, { entity }) => {
-        return {
-          disabled: entity.is_default,
-          checked: entity.is_active,
-          onChange: (checked: boolean) => {
-            if (checked) {
-              ThemeApi.activate(entity.id).then(() => {
-                message.success('主题激活成功');
-                runAsync();
-              }).catch((err) => {
-                message.error('主题激活失败：' + err.message);
-              });
-            }
-          },
-        };
+        return record.is_active ? <Tag color="green">已应用</Tag> : <Tag>未应用</Tag>;
       },
     },
     {
@@ -94,6 +113,21 @@ const Theme: React.FC = () => {
       valueType: 'option',
       render: (text, data, _, action) => (
         <Space size={'middle'}>
+          {!data.is_active && (
+            <a
+              key="activate"
+              onClick={() => {
+                ThemeApi.activate(data.id).then(() => {
+                  message.success('主题激活成功');
+                  runAsync();
+                }).catch((err) => {
+                  message.error('主题激活失败：' + err.message);
+                });
+              }}
+            >
+              应用
+            </a>
+          )}
           <a
             key="config"
             onClick={() => {
@@ -142,17 +176,46 @@ const Theme: React.FC = () => {
     },
   ];
 
-  const { runAsync, loading } = useRequest(
-    () => ThemeApi.getAll().then((data: any) => {
-      setDataSource(data);
-    })
-  );
-
   return (
-    <div>
-      <Button
-        onClick={() => setOpenModalCreate(true)}
-      >创建新主题</Button>
+    <div className="theme-page">
+      <Row gutter={[16, 16]} className="theme-page__summary">
+        <Col xs={24} md={8}>
+          <Card bordered={false}>
+            <Statistic title="主题总数" value={dataSource?.length || 0} suffix="套" />
+          </Card>
+        </Col>
+        <Col xs={24} md={8}>
+          <Card bordered={false}>
+            <Statistic title="当前主题" value={activeTheme?.display_name || '-'} />
+          </Card>
+        </Col>
+        <Col xs={24} md={8}>
+          <Card bordered={false}>
+            <Statistic title="可上传格式" value="ZIP" />
+          </Card>
+        </Col>
+      </Row>
+
+      <Card bordered={false} className="theme-page__upload">
+        <Upload.Dragger {...uploadProps}>
+          <p className="ant-upload-drag-icon">
+            <InboxOutlined />
+          </p>
+          <p className="ant-upload-text">拖拽主题压缩包到这里，或点击上传</p>
+          <p className="ant-upload-hint">主题包需要包含 theme.json，可引用 style.css、script.js 和预览图。</p>
+        </Upload.Dragger>
+      </Card>
+
+      <div className="theme-page__toolbar">
+        <Space>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setOpenModalCreate(true)}>
+            创建主题
+          </Button>
+          <Tooltip title="刷新">
+            <Button icon={<ReloadOutlined />} onClick={() => runAsync()} />
+          </Tooltip>
+        </Space>
+      </div>
       <ModalCreate open={openModalCreate} setOpen={setOpenModalCreate} okCallBack={runAsync} />
       <ModalConfig 
         open={openModalConfig} 
@@ -166,6 +229,7 @@ const Theme: React.FC = () => {
         theme={currentTheme} 
       />
       <EditableProTable
+        className="theme-page__table"
         rowKey="id"
         columns={columns}
         value={dataSource || []}
@@ -196,9 +260,6 @@ const Theme: React.FC = () => {
         recordCreatorProps={false}
         pagination={false}
         loading={loading}
-        style={{
-          paddingTop: '20px'
-        }}
         scroll={{ x: 'max-content' }}
       />
     </div>
