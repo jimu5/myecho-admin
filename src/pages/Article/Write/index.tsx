@@ -2,7 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import moment from 'moment';
 import Vditor from 'vditor';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useLocalStorageState, useRequest, useSafeState, useUpdate } from 'ahooks';
+import { useLocalStorageState, useRequest, useSafeState } from 'ahooks';
 import {
   Layout,
   Card,
@@ -34,8 +34,6 @@ import './index.scss';
 const { Content, Sider } = Layout;
 const { Option } = Select;
 
-var article_info: article; // 不安全的做法
-
 const ArticleWrite: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -44,14 +42,13 @@ const ArticleWrite: React.FC = () => {
     () =>
       article_id
         ? ArticleApi.get_no_read(article_id).then((data) => {
-          setArticleDetail(data as any);
-          article_info = data as any;
+          const articleData = data as any;
+          setArticleDetail(articleData);
+          return articleData;
         })
         : Promise.resolve(),
     { manual: true }
   );
-  const update = useUpdate();
-  const [saveArticleAlias, SetSaveArticleAlias] = useSafeState(false);
   const [vditor, setVd] = React.useState<Vditor>();
   const [tagData, setTagData] = useSafeState<tag[]>([]);
   const [categoryTree, setCategoryTree] = useSafeState([]);
@@ -59,7 +56,7 @@ const ArticleWrite: React.FC = () => {
     useLocalStorageState<ArticleLocalCache>('articleEditCache', {
       defaultValue: { status: 1, visibility: 1 },
     });
-  const [articleDetail, setArticleDetail] = useSafeState<article>(article_info);
+  const [articleDetail, setArticleDetail] = useSafeState<article | undefined>();
 
   const getEditArticle = () => {
     if (articleDetail) {
@@ -71,8 +68,6 @@ const ArticleWrite: React.FC = () => {
   const setEditArticle = (values: any) => {
     if (articleDetail) {
       setArticleDetail({ ...articleDetail, ...values });
-      // TODO: 先使用 article_info
-      article_info = { ...article_info, ...values };
       return;
     };
     setArticleEditCache({ ...articleEditCache, ...values });
@@ -82,12 +77,10 @@ const ArticleWrite: React.FC = () => {
     (vditor: Vditor) => {
       if (article_id) {
         // 如果有文章id的话就填充文章
-        runAsync().then(() => {
-          vditor.setValue(article_info?.detail.content || '');
+        runAsync().then((data) => {
+          vditor.setValue(data?.detail?.content || '');
           setVd(vditor);
         });
-      } else {
-        article_info = null as any;
       }
     },
     [article_id, runAsync]
@@ -121,14 +114,14 @@ const ArticleWrite: React.FC = () => {
     [setCategoryTree]
   );
 
-  const saveArticle = useCallback(() => {
+  const saveArticle = useCallback((override: Partial<articleRequest> = {}) => {
     let data: articleRequest = {
       content: vditor?.getValue(),
+      ...override,
     };
-    // TODO: 这块逻辑后面要改下
     if (article_id) {
-      let tag_uids = articleDetail.tags?.map((item) => item.uid) || [];
-      data = { ...data, ...article_info, tag_uids };
+      let tag_uids = articleDetail?.tags?.map((item) => item.uid) || [];
+      data = { ...data, ...articleDetail, tag_uids, ...override };
       ArticleApi.patch(article_id, data).then(() => {
         notification.success({ message: '更新成功' });
         navigate('/admin/article/all');
@@ -143,7 +136,7 @@ const ArticleWrite: React.FC = () => {
         navigate('/admin/article/all');
       })
     }
-  }, [articleDetail?.tags, articleEditCache, article_id, navigate, vditor])
+  }, [articleDetail, articleEditCache, article_id, navigate, vditor])
 
   useEffect(() => {
     const useCache = Boolean(!article_id);
@@ -162,34 +155,23 @@ const ArticleWrite: React.FC = () => {
     CategoryApi.getArticleList().then((data) => {
       buildTree(data);
     });
+    return () => {
+      vditor.destroy();
+    };
   }, [fillArticle, article_id, setTagData, buildTree]);
-
-  useEffect(() => {
-    if (saveArticleAlias) {
-      saveArticle()
-    }
-  }, [articleEditCache, saveArticleAlias, saveArticle])
 
   return (
     <Layout>
       <Content className={s.content}>
-        <h1>{article_info ? '编辑文章' : '撰写新文章'}</h1>
+        <h1>{article_id ? '编辑文章' : '撰写新文章'}</h1>
         <input
           placeholder="添加标题"
           className={s.articleTitle}
           value={
-            article_info ? article_info.title : articleEditCache.title
+            articleDetail ? articleDetail.title : articleEditCache.title
           }
           onChange={(event) => {
-            if (!article_info) {
-              setArticleEditCache({
-                ...articleEditCache,
-                title: event.target.value,
-              });
-            } else {
-              article_info.title = event.target.value;
-              update();
-            }
+            setEditArticle({ title: event.target.value });
           }}></input>
         <div id="vditor" className="vditor" />
       </Content>
@@ -224,8 +206,7 @@ const ArticleWrite: React.FC = () => {
               <button
                 className={s.savePost}
                 onClick={() => {
-                  setEditArticle({ status: 4 });
-                  SetSaveArticleAlias(true);
+                  saveArticle({ status: 4 });
                 }}>
                 保存草稿
               </button>
@@ -239,18 +220,10 @@ const ArticleWrite: React.FC = () => {
                 <Select
                   style={{ width: '60%' }}
                   value={
-                    article_info ? article_info.status : articleEditCache.status
+                    articleDetail ? articleDetail.status : articleEditCache.status
                   }
                   onChange={(value) => {
-                    if (!article_info) {
-                      setArticleEditCache({
-                        ...articleEditCache,
-                        status: value,
-                      });
-                    } else {
-                      article_info.status = value;
-                      update();
-                    }
+                    setEditArticle({ status: value });
                   }}>
                   {Array.from(articleStatus).map(item => (
                     <Option value={item[0]} key={item[0]}>{item[1]}</Option>
@@ -265,18 +238,10 @@ const ArticleWrite: React.FC = () => {
                   format="YYYY-MM-DDTHH:mm:ssZ"
                   locale={myLocale.DatePicker}
                   value={moment(
-                    article_info?.post_time || articleEditCache.post_time
+                    articleDetail?.post_time || articleEditCache.post_time
                   )}
                   onChange={(_, dateString) => {
-                    if (!article_info) {
-                      setArticleEditCache({
-                        ...articleEditCache,
-                        post_time: dateString,
-                      });
-                    } else {
-                      article_info.post_time = dateString;
-                      update();
-                    }
+                    setEditArticle({ post_time: dateString });
                   }}
                 />
               </div>
@@ -285,20 +250,13 @@ const ArticleWrite: React.FC = () => {
               <CommentOutlined />
               <span>是否允许评论</span>
               <Switch
-                defaultChecked={
-                  article_info
-                    ? article_info.is_allow_comment
+                checked={Boolean(
+                  articleDetail
+                    ? articleDetail.is_allow_comment
                     : articleEditCache?.is_allow_comment
-                }
+                )}
                 onChange={(checked) => {
-                  if (!article_info) {
-                    setArticleEditCache({
-                      ...articleEditCache,
-                      is_allow_comment: checked,
-                    });
-                  } else {
-                    article_info.is_allow_comment = checked;
-                  }
+                  setEditArticle({ is_allow_comment: checked });
                 }}
               />
             </div>
@@ -340,7 +298,7 @@ const ArticleWrite: React.FC = () => {
                 }}></TreeSelect>
             </div>
             <div className={s.bottomPostDiv}>
-              <button className={s.postSubmit} onClick={saveArticle}>
+              <button className={s.postSubmit} onClick={() => saveArticle()}>
                 立即发布
               </button>
             </div>

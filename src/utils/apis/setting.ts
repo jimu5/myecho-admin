@@ -21,8 +21,8 @@ export class SettingApi {
     static create(params: settingModel) {
         return axios.post(SettingApi.baseApiUrl, params)
     }
-    static updateValue(key: string, value: String, description: string) {
-        return axios.patch(`${SettingApi.baseApiUrl}/${key}`, {value: value})
+    static updateValue(key: string, value: string, description: string) {
+        return axios.patch(`${SettingApi.baseApiUrl}/${key}`, {value, description})
     }
     static delete(key: string) {
         return axios.delete(`${SettingApi.baseApiUrl}/${key}`)

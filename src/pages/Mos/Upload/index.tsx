@@ -3,7 +3,7 @@ import { Upload } from "antd"
 import { InboxOutlined } from "@ant-design/icons"
 
 import { MosAPI } from "@/utils/apis/mos"
-import { user } from "@/utils/myaxios"
+import { getAuthHeaders } from "@/utils/myaxios"
 
 const { Dragger } = Upload
 
@@ -12,7 +12,7 @@ const UploadFile: React.FC = () => {
     <div>
       <Dragger
         action="/mos/files/upload"
-        headers={{ 'Authorization': `token ${user.token}` }}
+        headers={getAuthHeaders()}
         multiple={true}
         onRemove={(file)=> {
           MosAPI.delete(file.response.id)

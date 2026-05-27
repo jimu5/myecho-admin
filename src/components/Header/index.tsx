@@ -2,27 +2,37 @@ import React from 'react';
 import { useLocalStorageState } from 'ahooks';
 import { Layout, Menu, Dropdown, Space } from 'antd';
 import { DownOutlined, UserOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 
 import { loginResponse } from '@/utils/apis/user';
 
 const { Header } = Layout;
-const menu = (
-  <Menu
-    items={[
-      {
-        key: '1',
-        label: <a href="/profile">个人资料</a>,
-      },
-      {
-        key: '2',
-        label: <a href="/logout">退出</a>,
-      }
-    ]}
-  />
-);
 
 const Myheader: React.FC = () => {
+  const navigate = useNavigate();
   const [user] = useLocalStorageState<loginResponse>('user');
+  const menu = (
+    <Menu
+      items={[
+        {
+          key: '1',
+          label: <a href="/profile">个人资料</a>,
+        },
+        {
+          key: '2',
+          label: (
+            <span
+              onClick={() => {
+                localStorage.removeItem('user');
+                navigate('/admin/login', { replace: true });
+              }}>
+              退出
+            </span>
+          ),
+        }
+      ]}
+    />
+  );
   return (
     <Header style={{ background: '#fff', padding: 0 }}>
       <div style={{

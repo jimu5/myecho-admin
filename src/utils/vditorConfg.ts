@@ -1,7 +1,7 @@
-import { user } from "./myaxios";
+import { getAuthHeaders } from "./myaxios";
 
 export var vditorUploadOptions = {
     url: "/mos/files/vditor_upload",
-    headers: {'Authorization': `token ${user.token}`},
+    headers: getAuthHeaders(),
     linkToImgUrl: "/mos/save_url_file",
 }

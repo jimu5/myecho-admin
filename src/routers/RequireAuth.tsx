@@ -7,7 +7,7 @@ import { loginResponse } from "@/utils/apis/user";
 const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user] = useLocalStorageState<loginResponse>("user");
 
-  return user?.token !== undefined ? (
+  return user?.token ? (
     <div>
       { children }
     </div>

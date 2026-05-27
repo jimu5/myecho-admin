@@ -28,7 +28,7 @@ export class CategoryApi {
   static createLink(params: {name: string; father_uid: string | null}) {
     return axios.post(CategoryApi.linkCategoryApiUrl, {...params});
   }
-  static patch(id: number, params: { name: string; father_id: number | null }) {
+  static patch(id: number, params: { name: string; father_uid: string | null }) {
     return axios.patch(`${CategoryApi.baseApiUrl}/${id}`, params);
   }
   static delete(id: number) {

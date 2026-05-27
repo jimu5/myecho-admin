@@ -36,7 +36,7 @@ const Category: React.FC<props> = ( { getAllMethod, CreateMethod}) => {
           if (parent) {
             parent.children!.push({
               title: item.name,
-              key: item.id,
+              key: item.uid,
               children: [],
             });
           }
