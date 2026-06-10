@@ -2,6 +2,7 @@ import React from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 const mockNavigate = jest.fn();
+const mockInsertValue = jest.fn();
 let mockParams: { id?: string } = {};
 
 jest.mock('react-router-dom', () => ({
@@ -41,6 +42,8 @@ jest.mock('vditor', () => {
   function MockVditor(this: any, _id: string, options: any) {
     this.setValue = jest.fn();
     this.getValue = jest.fn(() => 'Editor content');
+    this.getHTML = jest.fn(() => '<p>Editor content</p>');
+    this.insertValue = mockInsertValue;
     this.destroy = jest.fn();
     Promise.resolve().then(() => options?.after?.());
   }
@@ -48,6 +51,8 @@ jest.mock('vditor', () => {
   MockVditor.default = MockVditor;
   MockVditor.prototype.setValue = jest.fn();
   MockVditor.prototype.getValue = jest.fn(() => 'Editor content');
+  MockVditor.prototype.getHTML = jest.fn(() => '<p>Editor content</p>');
+  MockVditor.prototype.insertValue = mockInsertValue;
   MockVditor.prototype.destroy = jest.fn();
 
   return MockVditor;
@@ -77,6 +82,16 @@ jest.mock('@/utils/apis/category', () => ({
   CategoryApi: {
     getArticleList: jest.fn(),
   },
+}), { virtual: true });
+
+jest.mock('@/utils/apis/mos', () => ({
+  MosAPI: {
+    getList: jest.fn(),
+  },
+}), { virtual: true });
+
+jest.mock('@/utils/image_tool', () => ({
+  isAssetTypeAnImage: jest.fn(),
 }), { virtual: true });
 
 jest.mock('@/utils/vditorConfg', () => ({
@@ -114,6 +129,24 @@ jest.mock('antd', () => {
     </div>
   );
   Select.Option = ({ children }: any) => <span>{children}</span>;
+  const Button = ({ children, onClick, disabled }: any) => <button disabled={disabled} onClick={onClick}>{children}</button>;
+  const Modal = ({ children, open }: any) => open ? <div>{children}</div> : null;
+  const Input = ({ value, onChange }: any) => <input aria-label="media keyword" value={value} onChange={onChange} />;
+  Input.Search = ({ value, onChange, onSearch, placeholder }: any) => (
+    <div>
+      <input aria-label={placeholder} value={value} onChange={onChange} />
+      <button onClick={() => onSearch(value)}>search media</button>
+    </div>
+  );
+  const List = ({ dataSource = [], renderItem, pagination }: any) => (
+    <div>
+      {dataSource.map((item: any) => <div key={item.id}>{renderItem(item)}</div>)}
+      {pagination && (
+        <button type="button" onClick={() => pagination.onChange(2, 10)}>next media page</button>
+      )}
+    </div>
+  );
+  List.Item = ({ children }: any) => <div>{children}</div>;
 
   return {
     Layout,
@@ -141,6 +174,12 @@ jest.mock('antd', () => {
         select category
       </button>
     ),
+    Button,
+    Modal,
+    Input,
+    List,
+    Image: ({ src }: any) => <img src={src} alt="media" />,
+    Space: ({ children }: any) => <div>{children}</div>,
     notification: {
       success: jest.fn(),
     },
@@ -150,6 +189,8 @@ jest.mock('antd', () => {
 const ArticleWrite = require('./index').default;
 const { ArticleApi } = require('@/utils/apis/article');
 const { CategoryApi } = require('@/utils/apis/category');
+const { isAssetTypeAnImage } = require('@/utils/image_tool');
+const { MosAPI } = require('@/utils/apis/mos');
 const { TagApi } = require('@/utils/apis/tag');
 const { notification } = require('antd');
 
@@ -182,6 +223,12 @@ describe('ArticleWrite', () => {
     (ArticleApi.get_no_read as jest.Mock).mockResolvedValue(editArticle);
     (ArticleApi.patch as jest.Mock).mockResolvedValue({});
     (ArticleApi.create as jest.Mock).mockResolvedValue({});
+    (MosAPI.getList as jest.Mock).mockResolvedValue({
+      total: 1,
+      data: [{ id: 1, full_name: 'cover.png', extension_name: 'png', url: '/mos/cover.png' }],
+    });
+    (isAssetTypeAnImage as jest.Mock).mockImplementation((ext = '') => ['png', 'jpg', 'jpeg'].includes(String(ext).toLowerCase().replace(/^\./, '')));
+    mockInsertValue.mockClear();
     (TagApi.getList as jest.Mock).mockResolvedValue([
       { uid: 'tag-react', name: 'React' },
       { uid: 'tag-ts', name: 'TypeScript' },
@@ -274,5 +321,41 @@ describe('ArticleWrite', () => {
         tag_uids: ['tag-old'],
       })
     ));
+  });
+
+  test('saves a new article as draft with status override', async () => {
+    await renderArticleWrite();
+
+    fireEvent.change(screen.getByPlaceholderText('添加标题'), { target: { value: 'Draft article' } });
+    fireEvent.click(screen.getByText('保存草稿'));
+
+    await waitFor(() => expect(ArticleApi.create).toHaveBeenCalledWith(expect.objectContaining({
+      title: 'Draft article',
+      status: 4,
+    })));
+  });
+
+  test('inserts selected media into editor', async () => {
+    await renderArticleWrite();
+
+    fireEvent.click(screen.getByText('媒体库'));
+    await waitFor(() => expect(MosAPI.getList).toHaveBeenCalledWith(1, 20, ''));
+    await waitFor(() => expect(screen.getByText('cover.png')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('cover.png'));
+
+    expect(mockInsertValue).toHaveBeenCalledWith('![cover.png](/mos/cover.png)');
+  });
+
+  test('loads media by keyword and pagination before inserting', async () => {
+    await renderArticleWrite();
+
+    fireEvent.click(screen.getByText('媒体库'));
+    await waitFor(() => expect(MosAPI.getList).toHaveBeenCalledWith(1, 20, ''));
+    fireEvent.change(screen.getByLabelText('搜索文件名'), { target: { value: 'cover' } });
+    fireEvent.click(screen.getByText('search media'));
+    await waitFor(() => expect(MosAPI.getList).toHaveBeenCalledWith(1, 20, 'cover'));
+    fireEvent.click(screen.getByText('next media page'));
+
+    await waitFor(() => expect(MosAPI.getList).toHaveBeenCalledWith(2, 10, 'cover'));
   });
 });

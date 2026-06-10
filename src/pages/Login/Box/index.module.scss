@@ -2,7 +2,7 @@
 @import '../../../styles/style.scss';
 
 .loginBox {
-  width: 400px;
+  width: min(calc(100% - 32px), 400px);
   min-height: 400px;
   background: $themeColor;
   display: flex;
@@ -62,14 +62,28 @@
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
   }
 }
+
+.loginError {
+  width: 80%;
+  margin: 14px 0 0;
+  color: #b42318;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .loginBtn{
   position: absolute;
   right: 50px;
   bottom: 20px;
+  border: 0;
   @extend .btnBase;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 36px;
   font-size: 18px;
+}
+.loginBtn:disabled {
+  cursor: wait;
+  opacity: 0.72;
 }

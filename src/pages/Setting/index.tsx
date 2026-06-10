@@ -98,9 +98,9 @@ const Setting: React.FC = () => {
           type: 'single',
           editableKeys,
           onSave: async (rowKey, data, row) => {
-              SettingApi.updateValue(data.key, data.value, data.description).then(
+              SettingApi.updateValue(data.key, data.value, data.description).then(() => {
                 message.success("保存成功")
-              )
+              })
           },
           onChange: setEditableKeys,
           actionRender: (row, config, defaultDom) => [defaultDom.save, defaultDom.cancel]

@@ -1,6 +1,7 @@
 import React, { lazy } from 'react';
 
 const elements = {
+  dashboard: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Dashboard')),
   article: {
     write: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Article/Write')),
     all: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Article/All')),
@@ -15,6 +16,7 @@ const elements = {
     all: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Mos/All')),
     upload: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Mos/Upload')),
   },
+  comment: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Comment')),
   setting: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Setting')),
   theme: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Theme')),
 };
@@ -22,7 +24,7 @@ const elements = {
 const contentRoutes = [
   {
     path: '',
-    element: <h1> / </h1>,
+    element: <elements.dashboard />,
   },
   {
     path: 'article',
@@ -73,6 +75,10 @@ const contentRoutes = [
         element: <elements.mos.upload />
       },
     ]
+  },
+  {
+    path: 'comments',
+    element: <elements.comment />,
   },
   {
     path: 'setting',

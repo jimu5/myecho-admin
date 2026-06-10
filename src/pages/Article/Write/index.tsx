@@ -11,6 +11,12 @@ import {
   notification,
   Switch,
   TreeSelect,
+  Button,
+  Modal,
+  Input,
+  List,
+  Image,
+  Space,
 } from 'antd';
 import {
   KeyOutlined,
@@ -26,6 +32,8 @@ import { tag, TagApi } from '@/utils/apis/tag';
 import { category, CategoryApi } from '@/utils/apis/category';
 import { vditorUploadOptions } from '@/utils/vditorConfg';
 import { myLocale } from '@/utils/config';
+import { MosAPI, File } from '@/utils/apis/mos';
+import { isAssetTypeAnImage } from '@/utils/image_tool';
 
 import ArticleLocalCache from '../articleEditCache';
 import s from './index.module.scss';
@@ -33,6 +41,17 @@ import './index.scss';
 
 const { Content, Sider } = Layout;
 const { Option } = Select;
+
+const getFileExtension = (file: File) => {
+  if (file.extension_name) {
+    return file.extension_name;
+  }
+  const fileName = file.full_name || file.url || '';
+  const normalizedName = fileName.split('?')[0];
+  return normalizedName.includes('.') ? normalizedName.split('.').pop() || '' : '';
+};
+
+const isMediaImage = (file: File) => isAssetTypeAnImage(getFileExtension(file));
 
 const ArticleWrite: React.FC = () => {
   const navigate = useNavigate();
@@ -52,6 +71,15 @@ const ArticleWrite: React.FC = () => {
   const [vditor, setVd] = React.useState<Vditor>();
   const [tagData, setTagData] = useSafeState<tag[]>([]);
   const [categoryTree, setCategoryTree] = useSafeState([]);
+  const [dirty, setDirty] = useSafeState(false);
+  const [autoSavedAt, setAutoSavedAt] = useSafeState<string>();
+  const [previewOpen, setPreviewOpen] = useSafeState(false);
+  const [mediaOpen, setMediaOpen] = useSafeState(false);
+  const [mediaKeyword, setMediaKeyword] = useSafeState('');
+  const [mediaFiles, setMediaFiles] = useSafeState<File[]>([]);
+  const [mediaLoading, setMediaLoading] = useSafeState(false);
+  const [mediaTotal, setMediaTotal] = useSafeState(0);
+  const [mediaPage, setMediaPage] = useSafeState({ current: 1, pageSize: 20 });
   const [articleEditCache, setArticleEditCache] =
     useLocalStorageState<ArticleLocalCache>('articleEditCache', {
       defaultValue: { status: 1, visibility: 1 },
@@ -124,19 +152,44 @@ const ArticleWrite: React.FC = () => {
       data = { ...data, ...articleDetail, tag_uids, ...override };
       ArticleApi.patch(article_id, data).then(() => {
         notification.success({ message: '更新成功' });
+        setDirty(false);
         navigate('/admin/article/all');
       })
     } else {
       let tag_uids = articleEditCache.tags?.map((item) => item.uid) || [];
-      data = { ...data, ...articleEditCache, tag_uids };
+      data = { ...data, ...articleEditCache, tag_uids, ...override };
       ArticleApi.create(data).then(() => {
         notification.success({ message: '保存成功' });
         localStorage.removeItem("articleEditCache");
         vditor?.setValue('');
+        setDirty(false);
         navigate('/admin/article/all');
       })
     }
-  }, [articleDetail, articleEditCache, article_id, navigate, vditor])
+  }, [articleDetail, articleEditCache, article_id, navigate, setDirty, vditor])
+
+  const loadMediaFiles = useCallback((name = '', current = 1, pageSize = 20) => {
+    setMediaLoading(true);
+    MosAPI.getList(current, pageSize, name).then((data: any) => {
+      setMediaFiles(data.data || []);
+      setMediaTotal(data.total || 0);
+      setMediaPage({ current, pageSize });
+    }).finally(() => setMediaLoading(false));
+  }, [setMediaFiles, setMediaLoading, setMediaPage, setMediaTotal]);
+
+  const openMediaLibrary = () => {
+    setMediaOpen(true);
+    loadMediaFiles(mediaKeyword, 1, mediaPage.pageSize);
+  };
+
+  const insertMedia = (file: File) => {
+    const markdown = isMediaImage(file)
+      ? `![${file.full_name}](${file.url})`
+      : `[${file.full_name}](${file.url})`;
+    (vditor as any)?.insertValue?.(markdown);
+    setDirty(true);
+    setMediaOpen(false);
+  };
 
   useEffect(() => {
     const useCache = Boolean(!article_id);
@@ -148,6 +201,10 @@ const ArticleWrite: React.FC = () => {
       },
       cache: { enable: useCache },
       upload: vditorUploadOptions,
+      input: () => {
+        setDirty(true);
+        setAutoSavedAt(moment().format('HH:mm:ss'));
+      },
     });
     TagApi.getList().then((data) => {
       setTagData(data);
@@ -158,7 +215,19 @@ const ArticleWrite: React.FC = () => {
     return () => {
       vditor.destroy();
     };
-  }, [fillArticle, article_id, setTagData, buildTree]);
+  }, [fillArticle, article_id, setAutoSavedAt, setDirty, setTagData, buildTree]);
+
+  useEffect(() => {
+    const beforeUnload = (event: BeforeUnloadEvent) => {
+      if (!dirty) {
+        return;
+      }
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', beforeUnload);
+    return () => window.removeEventListener('beforeunload', beforeUnload);
+  }, [dirty]);
 
   return (
     <Layout>
@@ -174,6 +243,14 @@ const ArticleWrite: React.FC = () => {
             setEditArticle({ title: event.target.value });
           }}></input>
         <div id="vditor" className="vditor" />
+        <Space style={{ marginTop: 12 }}>
+          <Button onClick={() => setPreviewOpen(true)}>预览</Button>
+          <Button onClick={openMediaLibrary}>媒体库</Button>
+          <span className={s.autoSaveText}>
+            {autoSavedAt ? `已自动保存 ${autoSavedAt}` : '等待编辑'}
+            {dirty ? ' · 有未发布改动' : ''}
+          </span>
+        </Space>
       </Content>
       <Sider
         className={s.sider}
@@ -305,6 +382,59 @@ const ArticleWrite: React.FC = () => {
           </Card>
         </div>
       </Sider>
+      <Modal
+        title="文章预览"
+        open={previewOpen}
+        onCancel={() => setPreviewOpen(false)}
+        footer={null}
+        width={860}>
+        <div
+          className={s.previewBody}
+          dangerouslySetInnerHTML={{ __html: (vditor as any)?.getHTML?.() || vditor?.getValue() || '' }}
+        />
+      </Modal>
+      <Modal
+        title="媒体库"
+        open={mediaOpen}
+        onCancel={() => setMediaOpen(false)}
+        footer={null}
+        width={760}>
+        <Input.Search
+          allowClear
+          placeholder="搜索文件名"
+          style={{ marginBottom: 12 }}
+          value={mediaKeyword}
+          onChange={(event) => setMediaKeyword(event.target.value)}
+          onSearch={(value) => {
+            setMediaKeyword(value);
+            loadMediaFiles(value, 1, mediaPage.pageSize);
+          }}
+        />
+        <List
+          loading={mediaLoading}
+          dataSource={mediaFiles}
+          grid={{ gutter: 12, xs: 1, sm: 2, md: 3 }}
+          pagination={{
+            total: mediaTotal,
+            current: mediaPage.current,
+            pageSize: mediaPage.pageSize,
+            showSizeChanger: true,
+            onChange: (current, pageSize) => loadMediaFiles(mediaKeyword, current, pageSize),
+          }}
+          renderItem={(file) => (
+            <List.Item>
+              <button className={s.mediaItem} type="button" onClick={() => insertMedia(file)}>
+                {isMediaImage(file) ? (
+                  <Image src={file.url} preview={false} />
+                ) : (
+                  <span className={s.filePreview}>{file.extension_name || 'file'}</span>
+                )}
+                <span>{file.full_name}</span>
+              </button>
+            </List.Item>
+          )}
+        />
+      </Modal>
     </Layout>
   );
 };

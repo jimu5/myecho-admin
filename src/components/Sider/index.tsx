@@ -43,6 +43,10 @@ const MySider: React.FC = () => {
 
         items={menuConfig}
         onClick={(item) => {
+          if (item.key === 'site') {
+            window.location.href = '/';
+            return;
+          }
           navigate(item.key);
         }}
       />

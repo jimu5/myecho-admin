@@ -20,6 +20,8 @@ export const articleStatus = new Map([
     [6, '回收站']
 ])
 
+export const canPreviewArticle = (status?: number) => status === 1 || status === 2;
+
 // 单个文章的结构
 export interface article extends baseReturn {
     author: user;
@@ -51,13 +53,33 @@ export interface articleRequest {
     visibility?: number;
 }
 
+export interface articleListParams {
+    page: number;
+    page_size: number;
+    keyword?: string;
+    status?: number;
+    category_uid?: string;
+    tag_uid?: string;
+    date_from?: string;
+    date_to?: string;
+}
+
+export interface articleBatchRequest {
+    ids: number[];
+    action: 'delete' | 'status' | 'update_status';
+    status?: number;
+}
+
 export class ArticleApi {
     // 获取文章列表
-    static getList(params: { page: number; page_size: number;}) {
+    static getList(params: articleListParams) {
         return axios.get('/articles', { params });
     }
-    static getAllList(params: { page: number; page_size: number}) {
+    static getAllList(params: articleListParams) {
         return axios.get("all_articles", { params })
+    }
+    static batch(params: articleBatchRequest) {
+        return axios.post('articles/batch', params);
     }
     static create(params: articleRequest) {
         return axios.post('articles', params);

@@ -64,4 +64,18 @@ describe('LoginBox', () => {
       password: 'secret',
     });
   });
+
+  test('shows local error feedback when login fails', async () => {
+    (UserApi.login as jest.Mock).mockRejectedValue({ msg: '账号或密码错误' });
+
+    render(<LoginBox />);
+    fireEvent.change(screen.getByPlaceholderText('用户名或邮箱'), { target: { value: 'admin' } });
+    fireEvent.change(screen.getByPlaceholderText('密码'), { target: { value: 'wrong' } });
+    await act(async () => {
+      fireEvent.submit(screen.getByRole('button', { name: '登录' }).closest('form')!);
+    });
+
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('账号或密码错误'));
+    expect(window.location.href).toBe('');
+  });
 });

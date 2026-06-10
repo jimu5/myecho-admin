@@ -1,6 +1,7 @@
 import axios from '../myaxios';
 
 import { ArticleApi } from './article';
+import { CommentApi } from './comment';
 import { MosAPI, File } from './mos';
 
 jest.mock('../myaxios', () => ({
@@ -39,6 +40,9 @@ describe('ArticleApi', () => {
 
     ArticleApi.delete(9);
     expect(mockedAxios.delete).toHaveBeenCalledWith('/articles/9');
+
+    ArticleApi.batch({ ids: [1, 2], action: 'status', status: 4 });
+    expect(mockedAxios.post).toHaveBeenCalledWith('articles/batch', { ids: [1, 2], action: 'status', status: 4 });
   });
 
   test('patch defaults invalid article status to public', () => {
@@ -53,6 +57,26 @@ describe('ArticleApi', () => {
 
     ArticleApi.patch(5, { title: 'No status' });
     expect(mockedAxios.patch).toHaveBeenCalledWith('/articles/5', { title: 'No status', status: 1 });
+  });
+});
+
+describe('CommentApi', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('uses expected comment moderation endpoints', () => {
+    CommentApi.getList({ page: 1, page_size: 10, status: 1 });
+    expect(mockedAxios.get).toHaveBeenCalledWith('/comments', { params: { page: 1, page_size: 10, status: 1 } });
+
+    CommentApi.update(3, { status: 2 } as any);
+    expect(mockedAxios.patch).toHaveBeenCalledWith('/comments/3', { status: 2 });
+
+    CommentApi.batch({ ids: [3], action: 'status', status: 2 });
+    expect(mockedAxios.post).toHaveBeenCalledWith('/comments/batch', { ids: [3], action: 'status', status: 2 });
+
+    CommentApi.delete(3);
+    expect(mockedAxios.delete).toHaveBeenCalledWith('/comments/3');
   });
 });
 

@@ -1,9 +1,9 @@
 import React from 'react';
-import { ControlOutlined, PushpinOutlined, SettingOutlined, LinkOutlined, FileOutlined, FundProjectionScreenOutlined, AppstoreOutlined } from '@ant-design/icons';
+import { ControlOutlined, PushpinOutlined, SettingOutlined, LinkOutlined, FileOutlined, FundProjectionScreenOutlined, AppstoreOutlined, MessageOutlined } from '@ant-design/icons';
 
 const menuConfig = [
   {
-    key: '/',
+    key: 'site',
     icon: <FundProjectionScreenOutlined />,
     label: '查看站点',
   },
@@ -64,6 +64,11 @@ const menuConfig = [
         label: '上传文件'
       }
     ]
+  },
+  {
+    key: 'comments',
+    icon: <MessageOutlined />,
+    label: '评论审核',
   },
   {
     key: 'setting',
