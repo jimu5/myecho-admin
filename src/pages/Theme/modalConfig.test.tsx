@@ -57,7 +57,7 @@ const theme = {
   id: 9,
   display_name: 'Clean Theme',
   config: { primaryColor: '#111' },
-} as themeModel;
+} as unknown as themeModel;
 
 describe('ModalConfig', () => {
   beforeEach(() => {

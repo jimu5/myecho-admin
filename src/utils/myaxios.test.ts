@@ -32,11 +32,29 @@ describe('myaxios auth helpers', () => {
     expect(config.headers).toEqual({ Existing: '1', Authorization: 'token fresh' });
   });
 
-  test('response interceptor returns data and reports network errors safely', async () => {
+  test('response interceptor unwraps envelopes and reports network errors safely', async () => {
     const successHandler = (instance.interceptors.response as any).handlers[0].fulfilled;
     expect(successHandler({ data: { ok: true } })).toEqual({ ok: true });
+    expect(successHandler({ data: { code: 0, msg: 'ok', data: { id: 1 }, meta: {} } })).toEqual({ id: 1 });
+    expect(successHandler({ data: { code: 0, msg: 'ok', data: [{ id: 1 }], meta: { total: 1, page: 1, page_size: 10 } } })).toEqual({
+      total: 1,
+      page: 1,
+      page_size: 10,
+      data: [{ id: 1 }],
+    });
 
     const errorSpy = jest.spyOn(notification, 'error').mockImplementation(() => undefined as any);
+    await expect(successHandler({ data: { code: 4031, msg: 'bad request', data: null, meta: {} } })).rejects.toEqual({
+      code: 4031,
+      msg: 'bad request',
+      data: null,
+      meta: {},
+    });
+    expect(errorSpy).toHaveBeenCalledWith({
+      message: '错误代码: 4031',
+      description: 'bad request',
+    });
+
     const errorHandler = (instance.interceptors.response as any).handlers[0].rejected;
 
     await expect(errorHandler({ message: 'Network Error' })).rejects.toEqual({ message: 'Network Error' });

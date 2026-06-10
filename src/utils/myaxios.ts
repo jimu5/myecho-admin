@@ -7,6 +7,13 @@ const instance = axios.create({
   timeout: 10000,
 });
 
+interface ApiEnvelope<T = any> {
+  code: number;
+  msg: string;
+  data: T;
+  meta?: Record<string, any>;
+}
+
 export const getCurrentUser = () => JSON.parse(localStorage.getItem('user') || '{}');
 
 export const getAuthHeaders = (): Record<string, string> => {
@@ -38,7 +45,21 @@ instance.interceptors.response.use(
   function (response) {
     // Any status code that lie within the range of 2xx cause this function to trigger
     // Do something with response data
-    return response.data;
+    const payload = response.data;
+    if (isApiEnvelope(payload)) {
+      if (payload.code !== 0) {
+        notification.error({
+          message: '错误代码: ' + payload.code,
+          description: payload.msg,
+        });
+        return Promise.reject(payload);
+      }
+      if (payload.meta && Object.keys(payload.meta).length > 0) {
+        return { ...payload.meta, data: payload.data };
+      }
+      return payload.data;
+    }
+    return payload;
   },
   function (error) {
     // Any status codes that falls outside the range of 2xx cause this function to trigger
@@ -51,5 +72,13 @@ instance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+function isApiEnvelope(payload: any): payload is ApiEnvelope {
+  return payload
+    && typeof payload === 'object'
+    && typeof payload.code === 'number'
+    && typeof payload.msg === 'string'
+    && Object.prototype.hasOwnProperty.call(payload, 'data');
+}
 
 export default instance;
