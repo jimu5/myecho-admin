@@ -73,5 +73,10 @@ describe('ThemeApi', () => {
       },
       timeout: 30000,
     });
+    const formData = mockedAxios.post.mock.calls[0][1] as FormData;
+    const uploadedFile = formData.get('file') as File;
+    expect(uploadedFile).toBeInstanceOf(File);
+    expect(uploadedFile.size).toBe(file.size);
+    expect(uploadedFile.name).toBe('blob');
   });
 });

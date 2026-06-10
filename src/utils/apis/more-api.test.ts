@@ -46,6 +46,14 @@ describe('ArticleApi', () => {
 
     expect(mockedAxios.patch).toHaveBeenCalledWith('/articles/3', { title: 'Title', status: 1 });
   });
+
+  test('patch preserves valid article status and defaults missing status', () => {
+    ArticleApi.patch(4, { title: 'Pinned', status: 2 });
+    expect(mockedAxios.patch).toHaveBeenCalledWith('/articles/4', { title: 'Pinned', status: 2 });
+
+    ArticleApi.patch(5, { title: 'No status' });
+    expect(mockedAxios.patch).toHaveBeenCalledWith('/articles/5', { title: 'No status', status: 1 });
+  });
 });
 
 describe('MosAPI', () => {
