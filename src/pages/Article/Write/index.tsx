@@ -94,6 +94,7 @@ const ArticleWrite: React.FC = () => {
   };
 
   const setEditArticle = (values: any) => {
+    setDirty(true);
     if (articleDetail) {
       setArticleDetail({ ...articleDetail, ...values });
       return;

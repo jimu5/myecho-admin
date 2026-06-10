@@ -21,6 +21,7 @@ const All: React.FC = () => {
   const [loading, setLoading] = React.useState(false);
   const [page, setPage] = React.useState({ current: 1, pageSize: 10 });
   const [filters, setFilters] = React.useState<Omit<articleListParams, 'page' | 'page_size'>>({});
+  const [filterResetKey, setFilterResetKey] = React.useState(0);
   const [selectedRowKeys, setSelectedRowKeys] = React.useState<React.Key[]>([]);
   const [categoryData, setCategoryData] = React.useState<category[]>([]);
   const [tagData, setTagData] = React.useState<tagModel[]>([]);
@@ -52,8 +53,14 @@ const All: React.FC = () => {
   };
 
   const applyFilters = (nextFilters: Omit<articleListParams, 'page' | 'page_size'>) => {
+    setSelectedRowKeys([]);
     setFilters(nextFilters);
     setPage((prev) => ({ ...prev, current: 1 }));
+  };
+
+  const resetFilters = () => {
+    setFilterResetKey((prev) => prev + 1);
+    applyFilters({});
   };
 
   const batchUpdateStatus = (status: number) => {
@@ -167,7 +174,7 @@ const All: React.FC = () => {
 
   return (
     <div>
-      <Space wrap style={{ marginBottom: 16 }}>
+      <Space key={filterResetKey} wrap style={{ marginBottom: 16 }}>
         <Input.Search
           allowClear
           placeholder="搜索标题或摘要"
@@ -215,7 +222,7 @@ const All: React.FC = () => {
             date_to: dateStrings[1] || undefined,
           })}
         />
-        <Button onClick={() => applyFilters({})}>重置</Button>
+        <Button onClick={resetFilters}>重置</Button>
       </Space>
       <Space wrap style={{ marginBottom: 16 }}>
         <Button disabled={selectedRowKeys.length === 0} onClick={() => batchUpdateStatus(1)}>批量公开</Button>

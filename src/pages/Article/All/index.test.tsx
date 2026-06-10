@@ -134,4 +134,16 @@ describe('Article All', () => {
       status: 4,
     }));
   });
+
+  test('clears selected rows when applying a filter', async () => {
+    render(<All />);
+
+    await waitFor(() => expect(screen.getByText('select article')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('select article'));
+    expect(screen.getByText('批量草稿')).not.toBeDisabled();
+
+    fireEvent.click(screen.getByText('search keyword'));
+
+    await waitFor(() => expect(screen.getByText('批量草稿')).toBeDisabled());
+  });
 });

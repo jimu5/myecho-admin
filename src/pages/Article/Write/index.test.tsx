@@ -335,6 +335,14 @@ describe('ArticleWrite', () => {
     })));
   });
 
+  test('marks metadata edits as unsaved changes', async () => {
+    await renderArticleWrite();
+
+    fireEvent.change(screen.getByPlaceholderText('添加标题'), { target: { value: 'Unsaved title' } });
+
+    expect(screen.getByText(/有未发布改动/)).toBeInTheDocument();
+  });
+
   test('inserts selected media into editor', async () => {
     await renderArticleWrite();
 
