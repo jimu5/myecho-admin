@@ -44,12 +44,13 @@ jest.mock('antd', () => {
       ) : null,
     Form,
     Input,
-    InputNumber: (props: any) => <input type="number" {...props} />,
-    Switch: (props: any) => <input type="checkbox" {...props} />,
-    message: {
-      success: jest.fn(),
-      error: jest.fn(),
-    },
+	    InputNumber: (props: any) => <input type="number" {...props} />,
+	    Switch: (props: any) => <input type="checkbox" {...props} />,
+	    Select: (props: any) => <select {...props} />,
+	    message: {
+	      success: jest.fn(),
+	      error: jest.fn(),
+	    },
   };
 });
 
@@ -57,6 +58,7 @@ const theme = {
   id: 9,
   display_name: 'Clean Theme',
   config: { primaryColor: '#111' },
+  config_schema: [{ key: 'primaryColor', label: '主色调', type: 'color' }],
 } as unknown as themeModel;
 
 describe('ModalConfig', () => {

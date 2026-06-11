@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
-import { Modal, Form, Input, InputNumber, Switch, message } from 'antd';
+import { Modal, Form, Input, InputNumber, Switch, message, Select } from 'antd';
 import { ThemeApi } from '@/utils/apis/theme';
-import type { themeModel } from '@/utils/apis/theme';
+import type { ThemeConfigSchemaField, themeModel } from '@/utils/apis/theme';
 
 interface ModalConfigProps {
   open: boolean;
@@ -12,22 +12,38 @@ interface ModalConfigProps {
 
 const ModalConfig: React.FC<ModalConfigProps> = ({ open, setOpen, theme, okCallBack }) => {
   const [form] = Form.useForm();
+  const schema = theme?.config_schema || [];
+  const hasSchema = schema.length > 0;
 
   useEffect(() => {
     if (open && theme) {
-      // 设置表单初始值为主题的配置
-      form.setFieldsValue(theme.config || {});
+      if (hasSchema) {
+        form.setFieldsValue(theme.config || {});
+      } else {
+        form.setFieldsValue({
+          __json: JSON.stringify(theme.config || {}, null, 2),
+        });
+      }
     } else if (!open) {
       // 关闭时重置表单
       form.resetFields();
     }
-  }, [open, theme, form]);
+  }, [open, theme, form, hasSchema]);
 
   const handleOk = () => {
     if (!theme) return;
     
     form.validateFields().then(values => {
-      ThemeApi.updateConfig(theme.id, values).then(() => {
+      let payload = values;
+      if (!hasSchema) {
+        try {
+          payload = JSON.parse(values.__json || '{}');
+        } catch (error) {
+          message.error('JSON 配置格式有误');
+          return;
+        }
+      }
+      ThemeApi.updateConfig(theme.id, payload).then(() => {
         message.success('主题配置更新成功');
         setOpen(false);
         okCallBack();
@@ -56,60 +72,51 @@ const ModalConfig: React.FC<ModalConfigProps> = ({ open, setOpen, theme, okCallB
         layout="vertical"
         initialValues={theme.config || {}}
       >
-        {/* 这里可以根据主题类型动态生成配置项 */}
-        {/* 以下是一些通用的配置项示例 */}
-        <Form.Item
-          name="primaryColor"
-          label="主色调"
-          rules={[{ required: false }]}
-        >
-          <Input placeholder="例如：#1890ff" />
-        </Form.Item>
-        
-        <Form.Item
-          name="showHeader"
-          label="显示头部"
-          valuePropName="checked"
-          rules={[{ required: false }]}
-        >
-          <Switch />
-        </Form.Item>
-        
-        <Form.Item
-          name="showFooter"
-          label="显示底部"
-          valuePropName="checked"
-          rules={[{ required: false }]}
-        >
-          <Switch />
-        </Form.Item>
-        
-        <Form.Item
-          name="sidebarWidth"
-          label="侧边栏宽度"
-          rules={[{ required: false }]}
-        >
-          <InputNumber min={100} max={400} />
-        </Form.Item>
-        
-        <Form.Item
-          name="customCSS"
-          label="自定义CSS"
-          rules={[{ required: false }]}
-        >
-          <Input.TextArea rows={4} placeholder="输入自定义CSS样式" />
-        </Form.Item>
-        
-        <Form.Item
-          name="customJS"
-          label="自定义JavaScript"
-          rules={[{ required: false }]}
-        >
-          <Input.TextArea rows={4} placeholder="输入自定义JavaScript代码" />
-        </Form.Item>
+        {hasSchema ? schema.map((field) => (
+          <Form.Item
+            key={field.key}
+            name={field.key}
+            label={field.label || field.key}
+            valuePropName={field.type === 'boolean' ? 'checked' : 'value'}
+            rules={[{ required: false }]}
+          >
+            {renderSchemaField(field)}
+          </Form.Item>
+        )) : (
+          <Form.Item
+            name="__json"
+            label="JSON 配置"
+            rules={[{ required: false }]}
+          >
+            <Input.TextArea rows={12} />
+          </Form.Item>
+        )}
       </Form>
     </Modal>
   );
 };
+
+function renderSchemaField(field: ThemeConfigSchemaField) {
+  switch (field.type) {
+    case 'boolean':
+      return <Switch />;
+    case 'number':
+      return <InputNumber style={{ width: '100%' }} />;
+    case 'textarea':
+      return <Input.TextArea rows={4} />;
+    case 'color':
+      return <Input type="color" />;
+    case 'select':
+      return <Select options={(field.options || []).map((option) => {
+        if (typeof option === 'string') {
+          return { label: option, value: option };
+        }
+        return option;
+      })} />;
+    case 'text':
+    default:
+      return <Input />;
+  }
+}
 
 export default ModalConfig;

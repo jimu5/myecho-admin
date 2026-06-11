@@ -251,7 +251,7 @@ describe('Theme page', () => {
     fireEvent.click(within(customThemeRow).getByText('应用'));
 
     await waitFor(() => expect(ThemeApi.activate).toHaveBeenCalledWith(2));
-    expect(message.success).toHaveBeenCalledWith('主题激活成功');
+    expect(message.success).toHaveBeenCalledWith('主题激活成功，前台已立即切换');
 
     fireEvent.click(within(customThemeRow).getByText('删除'));
 

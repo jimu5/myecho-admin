@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Card, Col, message, Popconfirm, Row, Space, Statistic, Tag, Tooltip, Upload } from 'antd';
+import { Button, Card, Col, Image, message, Popconfirm, Row, Space, Statistic, Tag, Tooltip, Upload } from 'antd';
 import type { UploadProps } from 'antd';
 import { InboxOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons';
 import { EditableProTable } from '@ant-design/pro-table';
@@ -54,6 +54,8 @@ const Theme: React.FC = () => {
             <strong>{record.display_name}</strong>
             {record.is_active && <Tag color="green">启用中</Tag>}
             {record.is_default && <Tag>默认</Tag>}
+            {record.has_templates && <Tag color="blue">模板</Tag>}
+            {(record.config_schema || []).length > 0 && <Tag color="purple">配置项</Tag>}
           </Space>
           <span className="theme-page__muted">{record.name}</span>
         </Space>
@@ -77,6 +79,15 @@ const Theme: React.FC = () => {
           };
         }
       },
+    },
+    {
+      title: '预览图',
+      dataIndex: 'preview',
+      width: 96,
+      editable: false,
+      render: (_, record) => record.preview ? (
+        <Image width={64} height={40} src={record.preview} style={{ objectFit: 'cover' }} />
+      ) : <span className="theme-page__muted">-</span>,
     },
     {
       title: '作者',
@@ -118,7 +129,7 @@ const Theme: React.FC = () => {
               key="activate"
               onClick={() => {
                 ThemeApi.activate(data.id).then(() => {
-                  message.success('主题激活成功');
+                  message.success('主题激活成功，前台已立即切换');
                   runAsync();
                 }).catch((err) => {
                   message.error('主题激活失败：' + err.message);
@@ -202,7 +213,7 @@ const Theme: React.FC = () => {
             <InboxOutlined />
           </p>
           <p className="ant-upload-text">拖拽主题压缩包到这里，或点击上传</p>
-          <p className="ant-upload-hint">主题包需要包含 theme.json，可引用 style.css、script.js 和预览图。</p>
+          <p className="ant-upload-hint">主题包需要包含 theme.json，可引用 style.css、script.js、预览图、templates/ 模板和 config_schema。</p>
         </Upload.Dragger>
       </Card>
 
