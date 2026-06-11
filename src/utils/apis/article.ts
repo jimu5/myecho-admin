@@ -22,33 +22,44 @@ export const articleStatus = new Map([
 
 export const canPreviewArticle = (status?: number) => status === 1 || status === 2;
 
+export const articleTypes = new Map([
+    [1, '文章'],
+    [2, '页面']
+])
+
 // 单个文章的结构
 export interface article extends baseReturn {
     author: user;
     title: string;
+    slug: string;
     summary: string;
     detail: articleDetail;
     category_uid: string;
     category?: category;
     is_allow_comment: boolean;
+    is_password_protected: boolean;
     read_count: number;
     like_count: number;
     comment_count: number;
     post_time: string;
     status: number;
+    type: number;
     visibility: number;
     tags: tag[];
 }
 
 export interface articleRequest {
     title?: string;
+    slug?: string;
     summary?: string;
     content?: string;
     category_uid?: string;
     is_allow_comment?: boolean;
     post_time?: string;
     status?: number;
+    type?: number;
     password?: string;
+    clear_password?: boolean;
     tag_uids?: string[];
     visibility?: number;
 }
@@ -58,6 +69,7 @@ export interface articleListParams {
     page_size: number;
     keyword?: string;
     status?: number;
+    type?: number;
     category_uid?: string;
     tag_uid?: string;
     date_from?: string;
@@ -89,6 +101,9 @@ export class ArticleApi {
     }
     static get_no_read(id: number) {
         return axios.get(`/articles/${id}?no_read=true`)
+    }
+    static unlockPassword(id: number, password: string) {
+        return axios.post(`/articles/${id}/password`, { password });
     }
     static delete(id: number) {
         return axios.delete(`/articles/${id}`);

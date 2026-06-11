@@ -21,6 +21,7 @@ export interface comment extends baseReturn {
   status: number;
   like_count: number;
   parent_id: number;
+  replies?: comment[];
   user_id: number;
   post_time: string;
 }

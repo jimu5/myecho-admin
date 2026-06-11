@@ -3,7 +3,7 @@ import { Button, DatePicker, Input, message, Popconfirm, Select, Space, Table, T
 import type { ColumnsType } from 'antd/lib/table';
 import dayjs from 'dayjs';
 
-import { ArticleApi, article, articleListParams, articleStatus, canPreviewArticle } from '@/utils/apis/article';
+import { ArticleApi, article, articleListParams, articleStatus, articleTypes, canPreviewArticle } from '@/utils/apis/article';
 import { CategoryApi, category } from '@/utils/apis/category';
 import { TagApi, tag as tagModel } from '@/utils/apis/tag';
 import AdminNavLink from '@/routers/AdminNavlink';
@@ -26,6 +26,13 @@ const All: React.FC = () => {
   const [categoryData, setCategoryData] = React.useState<category[]>([]);
   const [tagData, setTagData] = React.useState<tagModel[]>([]);
   const { current, pageSize } = page;
+
+  const articlePreviewPath = (record: article) => {
+    if (record.slug) {
+      return record.type === 2 ? `/pages/${record.slug}` : `/posts/${record.slug}`;
+    }
+    return `/articles/${record.id}`;
+  };
 
   const getArticleList = useCallback(() => {
     setLoading(true);
@@ -98,7 +105,14 @@ const All: React.FC = () => {
       dataIndex: 'title',
       key: 'title',
       width: 260,
-      render: (text, record) => <a href={`/articles/${record.id}`} target="_blank" rel="noreferrer">{text}</a>,
+      render: (text, record) => <a href={articlePreviewPath(record)} target="_blank" rel="noreferrer">{text}</a>,
+    },
+    {
+      title: '类型',
+      dataIndex: 'type',
+      key: 'type',
+      width: 90,
+      render: (value: number) => <Tag>{articleTypes.get(value) || '文章'}</Tag>,
     },
     {
       title: '分类',
@@ -150,7 +164,7 @@ const All: React.FC = () => {
         <Space size="middle">
           <AdminNavLink to={`article/write/${record.id}`}>编辑</AdminNavLink>
           {canPreviewArticle(record.status) ? (
-            <a href={`/articles/${record.id}`} target="_blank" rel="noreferrer">预览</a>
+            <a href={articlePreviewPath(record)} target="_blank" rel="noreferrer">预览</a>
           ) : (
             <span style={{ color: '#86909c' }}>未发布</span>
           )}
@@ -195,6 +209,16 @@ const All: React.FC = () => {
           onChange={(status) => applyFilters({ ...filters, status })}
         >
           {Array.from(articleStatus).map(([value, label]) => (
+            <Option value={value} key={value}>{label}</Option>
+          ))}
+        </Select>
+        <Select
+          allowClear
+          placeholder="类型"
+          style={{ width: 120 }}
+          onChange={(type) => applyFilters({ ...filters, type })}
+        >
+          {Array.from(articleTypes).map(([value, label]) => (
             <Option value={value} key={value}>{label}</Option>
           ))}
         </Select>

@@ -75,6 +75,7 @@ const CommentPage: React.FC = () => {
           <span>{text}</span>
           <span style={{ color: '#86909c', fontSize: 12 }}>
             {record.author_name} · {record.author_email}
+            {record.parent_id ? ` · 回复 #${record.parent_id}` : ''}
           </span>
         </Space>
       ),

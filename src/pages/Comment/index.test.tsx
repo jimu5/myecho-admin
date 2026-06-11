@@ -18,7 +18,7 @@ const commentRows = [
     content: 'hello',
     status: 1,
     like_count: 0,
-    parent_id: 0,
+    parent_id: 12,
     user_id: 0,
     post_time: '2026-05-28T09:30:00+08:00',
   },
@@ -98,6 +98,7 @@ describe('CommentPage', () => {
       status: 1,
     }));
     expect(screen.getByText('hello')).toBeInTheDocument();
+    expect(screen.getByText(/回复 #12/)).toBeInTheDocument();
   });
 
   test('batch approves selected comments', async () => {

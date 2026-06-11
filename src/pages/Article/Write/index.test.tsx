@@ -65,6 +65,10 @@ jest.mock('@/utils/apis/article', () => ({
     [3, '私密'],
     [4, '草稿'],
   ]),
+  articleTypes: new Map([
+    [1, '文章'],
+    [2, '页面'],
+  ]),
   ArticleApi: {
     get_no_read: jest.fn(),
     patch: jest.fn(),
@@ -115,15 +119,15 @@ jest.mock('antd', () => {
   Layout.Content = ({ children }: any) => <main>{children}</main>;
   Layout.Sider = ({ children }: any) => <aside>{children}</aside>;
 
-  const Select: any = ({ mode, onChange, value, children }: any) => (
+  const Select: any = ({ mode, onChange, value, children, 'aria-label': ariaLabel }: any) => (
     <div>
-      <span data-testid={mode === 'multiple' ? 'tag-value' : 'status-value'}>
+      <span data-testid={mode === 'multiple' ? 'tag-value' : ariaLabel === '内容类型' ? 'type-value' : 'status-value'}>
         {Array.isArray(value) ? value.join(',') : value}
       </span>
       <button
         type="button"
-        onClick={() => onChange(mode === 'multiple' ? ['tag-react', 'tag-ts'] : 3)}>
-        {mode === 'multiple' ? 'select tags' : 'select status'}
+        onClick={() => onChange(mode === 'multiple' ? ['tag-react', 'tag-ts'] : ariaLabel === '内容类型' ? 2 : 3)}>
+        {mode === 'multiple' ? 'select tags' : ariaLabel === '内容类型' ? 'select type' : 'select status'}
       </button>
       {children}
     </div>
@@ -197,6 +201,9 @@ const { notification } = require('antd');
 const editArticle = {
   id: 42,
   title: 'Old title',
+  slug: 'old-title',
+  type: 1,
+  is_password_protected: true,
   summary: 'Old summary',
   detail: { id: 7, content: 'Loaded markdown' },
   category_uid: 'cat-root',
@@ -248,7 +255,9 @@ describe('ArticleWrite', () => {
 
     await waitFor(() => expect(ArticleApi.get_no_read).toHaveBeenCalledWith(42));
     await waitFor(() => expect(screen.getByPlaceholderText('添加标题')).toHaveValue('Old title'));
+    expect(screen.getByPlaceholderText('自定义链接 slug')).toHaveValue('old-title');
     expect(screen.getByTestId('status-value')).toHaveTextContent('2');
+    expect(screen.getByTestId('type-value')).toHaveTextContent('1');
     expect(screen.getByTestId('tag-value')).toHaveTextContent('tag-old');
   });
 
@@ -259,7 +268,10 @@ describe('ArticleWrite', () => {
 
     await waitFor(() => expect(screen.getByPlaceholderText('添加标题')).toHaveValue('Old title'));
     fireEvent.change(screen.getByPlaceholderText('添加标题'), { target: { value: 'Updated title' } });
+    fireEvent.change(screen.getByPlaceholderText('自定义链接 slug'), { target: { value: 'updated-title' } });
+    fireEvent.change(screen.getByPlaceholderText('访问密码'), { target: { value: 'new secret' } });
     fireEvent.click(screen.getByText('select status'));
+    fireEvent.click(screen.getByText('select type'));
     fireEvent.click(screen.getByText('set post time'));
     fireEvent.click(screen.getByText('comments off'));
     fireEvent.click(screen.getByText('select tags'));
@@ -270,6 +282,9 @@ describe('ArticleWrite', () => {
       42,
       expect.objectContaining({
         title: 'Updated title',
+        slug: 'updated-title',
+        type: 2,
+        password: 'new secret',
         status: 3,
         post_time: '2026-05-28T09:30:00+08:00',
         is_allow_comment: true,
@@ -286,7 +301,9 @@ describe('ArticleWrite', () => {
 
     await waitFor(() => expect(TagApi.getList).toHaveBeenCalled());
     fireEvent.change(screen.getByPlaceholderText('添加标题'), { target: { value: 'New article' } });
+    fireEvent.change(screen.getByPlaceholderText('自定义链接 slug'), { target: { value: 'new-article' } });
     fireEvent.click(screen.getByText('select status'));
+    fireEvent.click(screen.getByText('select type'));
     fireEvent.click(screen.getByText('set post time'));
     fireEvent.click(screen.getByText('comments off'));
     fireEvent.click(screen.getByText('select tags'));
@@ -295,6 +312,8 @@ describe('ArticleWrite', () => {
 
     await waitFor(() => expect(ArticleApi.create).toHaveBeenCalledWith(expect.objectContaining({
       title: 'New article',
+      slug: 'new-article',
+      type: 2,
       status: 3,
       post_time: '2026-05-28T09:30:00+08:00',
       is_allow_comment: true,
@@ -319,6 +338,23 @@ describe('ArticleWrite', () => {
       expect.objectContaining({
         status: 4,
         tag_uids: ['tag-old'],
+      })
+    ));
+  });
+
+  test('clears an existing article password when requested', async () => {
+    mockParams = { id: '42' };
+
+    await renderArticleWrite();
+
+    await waitFor(() => expect(screen.getByPlaceholderText('添加标题')).toHaveValue('Old title'));
+    fireEvent.click(screen.getByText('清除密码'));
+    fireEvent.click(screen.getByText('立即发布'));
+
+    await waitFor(() => expect(ArticleApi.patch).toHaveBeenCalledWith(
+      42,
+      expect.objectContaining({
+        clear_password: true,
       })
     ));
   });

@@ -18,6 +18,8 @@ const articleRows = [
     comment_count: 1,
     like_count: 0,
     status: 1,
+    slug: 'hello',
+    type: 1,
   },
 ];
 
@@ -27,6 +29,10 @@ jest.mock('@/utils/apis/article', () => ({
   articleStatus: new Map([
     [1, '公开'],
     [4, '草稿'],
+  ]),
+  articleTypes: new Map([
+    [1, '文章'],
+    [2, '页面'],
   ]),
   canPreviewArticle: jest.fn((status?: number) => status === 1 || status === 2),
   ArticleApi: {
@@ -51,7 +57,7 @@ jest.mock('@/utils/apis/tag', () => ({
 jest.mock('antd', () => {
   const Select: any = ({ children, onChange, placeholder }: any) => (
     <div>
-      <button onClick={() => onChange(placeholder === '状态' ? 4 : placeholder === '分类' ? 'cat-tech' : 'tag-go')}>
+      <button onClick={() => onChange(placeholder === '状态' ? 4 : placeholder === '分类' ? 'cat-tech' : placeholder === '类型' ? 2 : 'tag-go')}>
         select {placeholder}
       </button>
       {children}
@@ -145,5 +151,18 @@ describe('Article All', () => {
     fireEvent.click(screen.getByText('search keyword'));
 
     await waitFor(() => expect(screen.getByText('批量草稿')).toBeDisabled());
+  });
+
+  test('filters articles by content type', async () => {
+    render(<All />);
+
+    await waitFor(() => expect(screen.getByText('select 类型')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('select 类型'));
+
+    await waitFor(() => expect(ArticleApi.getAllList).toHaveBeenLastCalledWith(expect.objectContaining({
+      type: 2,
+      page: 1,
+      page_size: 10,
+    })));
   });
 });

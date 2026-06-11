@@ -23,6 +23,21 @@
   border-color: rgba(15, 118, 110, 0.42);
   box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
 }
+.articleSlug {
+  width: 100%;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(35, 49, 61, 0.14);
+  border-radius: 10px;
+  outline: none;
+  background: rgba(255, 253, 250, 0.92);
+  color: #334155;
+  font-size: 14px;
+}
+.articleSlug:focus {
+  border-color: rgba(15, 118, 110, 0.42);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+}
 .submitDiv {
   padding: 0;
   margin-top: 0;
@@ -92,6 +107,27 @@
 .categoryDiv {
   padding: 6px;
   width: 100%;
+}
+.passwordDiv {
+  padding: 6px;
+  width: 100%;
+  color: #66747f;
+  input {
+    width: 100%;
+    margin-top: 6px;
+    padding: 8px 10px;
+    border: 1px solid rgba(35, 49, 61, 0.14);
+    border-radius: 8px;
+    outline: none;
+  }
+}
+.clearPassword {
+  margin-top: 6px;
+  border: 0;
+  background: transparent;
+  color: #b42318;
+  cursor: pointer;
+  font-size: 12px;
 }
 .autoSaveText {
   color: #66747f;

@@ -27,7 +27,7 @@ import {
 } from '@ant-design/icons';
 import 'vditor/dist/index.css';
 
-import { article, articleRequest, ArticleApi, articleStatus } from '@/utils/apis/article';
+import { article, articleRequest, ArticleApi, articleStatus, articleTypes } from '@/utils/apis/article';
 import { tag, TagApi } from '@/utils/apis/tag';
 import { category, CategoryApi } from '@/utils/apis/category';
 import { vditorUploadOptions } from '@/utils/vditorConfg';
@@ -82,7 +82,7 @@ const ArticleWrite: React.FC = () => {
   const [mediaPage, setMediaPage] = useSafeState({ current: 1, pageSize: 20 });
   const [articleEditCache, setArticleEditCache] =
     useLocalStorageState<ArticleLocalCache>('articleEditCache', {
-      defaultValue: { status: 1, visibility: 1 },
+      defaultValue: { status: 1, visibility: 1, type: 1 },
     });
   const [articleDetail, setArticleDetail] = useSafeState<article | undefined>();
 
@@ -249,6 +249,14 @@ const ArticleWrite: React.FC = () => {
           onChange={(event) => {
             setEditArticle({ title: event.target.value });
           }}></input>
+        <input
+          placeholder="自定义链接 slug"
+          className={s.articleSlug}
+          value={getEditArticle()?.slug || ''}
+          onChange={(event) => {
+            setEditArticle({ slug: event.target.value });
+          }}
+        />
         <div id="vditor" className="vditor" />
         <Space style={{ marginTop: 12 }}>
           <Button onClick={() => setPreviewOpen(true)}>预览</Button>
@@ -314,6 +322,23 @@ const ArticleWrite: React.FC = () => {
                   ))}
                 </Select>
               </div>
+              <div
+                className={s.postSettingSection}
+              >
+                <KeyOutlined />
+                <span>类型：</span>
+                <Select
+                  aria-label="内容类型"
+                  style={{ width: '60%' }}
+                  value={getEditArticle()?.type || 1}
+                  onChange={(value) => {
+                    setEditArticle({ type: value });
+                  }}>
+                  {Array.from(articleTypes).map(item => (
+                    <Option value={item[0]} key={item[0]}>{item[1]}</Option>
+                  ))}
+                </Select>
+              </div>
               <div className={s.postSettingSection}>
                 <ClockCircleOutlined />
                 <span>发布时间</span>
@@ -343,6 +368,27 @@ const ArticleWrite: React.FC = () => {
                   setEditArticle({ is_allow_comment: checked });
                 }}
               />
+            </div>
+            <div className={s.passwordDiv}>
+              <KeyOutlined />
+              <span>访问密码: </span>
+              <input
+                placeholder="访问密码"
+                type="password"
+                value={(getEditArticle() as any)?.password || ''}
+                onChange={(event) => {
+                  setEditArticle({ password: event.target.value, clear_password: false });
+                }}
+              />
+              {(getEditArticle() as any)?.is_password_protected && (
+                <button
+                  type="button"
+                  className={s.clearPassword}
+                  onClick={() => setEditArticle({ password: '', clear_password: true })}
+                >
+                  清除密码
+                </button>
+              )}
             </div>
             {/* tag标签 */}
             <div className={s.tagDiv}>

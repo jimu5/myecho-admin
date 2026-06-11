@@ -43,6 +43,9 @@ describe('ArticleApi', () => {
 
     ArticleApi.batch({ ids: [1, 2], action: 'status', status: 4 });
     expect(mockedAxios.post).toHaveBeenCalledWith('articles/batch', { ids: [1, 2], action: 'status', status: 4 });
+
+    ArticleApi.unlockPassword(7, 'secret');
+    expect(mockedAxios.post).toHaveBeenCalledWith('/articles/7/password', { password: 'secret' });
   });
 
   test('patch defaults invalid article status to public', () => {
