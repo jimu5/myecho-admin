@@ -120,7 +120,7 @@ describe('Setting page', () => {
     await renderSetting();
 
     expect(screen.getByText('modal closed')).toBeInTheDocument();
-    fireEvent.click(screen.getByText('创建新的'));
+    fireEvent.click(screen.getByText('创建设置'));
 
     expect(screen.getByText('modal open')).toBeInTheDocument();
     await act(async () => {

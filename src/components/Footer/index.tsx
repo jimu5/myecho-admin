@@ -5,7 +5,7 @@ const { Footer } = Layout;
 
 const MyFooter: React.FC = () => {
   return (
-    <Footer style={{ textAlign: "center" }}>
+    <Footer className="admin-footer">
       MyechoAdmin Created by Kimiato
     </Footer>
   );

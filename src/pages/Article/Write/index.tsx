@@ -195,7 +195,7 @@ const ArticleWrite: React.FC = () => {
   useEffect(() => {
     const useCache = Boolean(!article_id);
     const vditor = new Vditor('vditor', {
-      height: window.innerHeight / 2,
+      height: Math.max(520, window.innerHeight - 280),
       after: () => {
         fillArticle(vditor);
         setVd(vditor);
@@ -231,9 +231,15 @@ const ArticleWrite: React.FC = () => {
   }, [dirty]);
 
   return (
-    <Layout>
+    <div className="admin-write-page">
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">{article_id ? '编辑文章' : '撰写新文章'}</h1>
+          <p className="admin-page-subtitle">沉浸写作，保存草稿，预览内容，并从媒体库插入素材。</p>
+        </div>
+      </div>
+    <Layout className={s.writeLayout}>
       <Content className={s.content}>
-        <h1>{article_id ? '编辑文章' : '撰写新文章'}</h1>
         <input
           placeholder="添加标题"
           className={s.articleTitle}
@@ -437,6 +443,7 @@ const ArticleWrite: React.FC = () => {
         />
       </Modal>
     </Layout>
+    </div>
   );
 };
 

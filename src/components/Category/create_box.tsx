@@ -34,10 +34,8 @@ const CreateBox: React.FC<Props> = ({ data, runAsync, CreateMethod }) => {
 
   return (
     <div
-      style={{
-        marginBottom: '20px',
-      }}>
-      <p>父级分类: </p>
+      className="category-create-box">
+      <p>父级分类</p>
       <Select
         style={{
           width: '200px',

@@ -23,19 +23,27 @@ const MySider: React.FC = () => {
       theme='light'
       breakpoint="lg"
       collapsedWidth="0"
+      className="admin-sider"
       onBreakpoint={(broken) => {
       }}
       onCollapse={(collapsed, type) => {
       }}
       style={{
-        maxWidth: '200px',
-        minWidth: '150px',
+        maxWidth: '220px',
+        minWidth: '180px',
         height: '100vh',
       }}
       zeroWidthTriggerStyle={{
         top: '10px',
       }}
       >
+      <div className="admin-brand">
+        <span className="admin-brand-mark" aria-hidden="true" />
+        <span>
+          <span className="admin-brand-title">Myecho</span>
+          <span className="admin-brand-subtitle">Blog Admin</span>
+        </span>
+      </div>
       <Menu
         mode="inline"
         defaultOpenKeys={locationSplit}

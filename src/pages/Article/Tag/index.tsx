@@ -28,8 +28,14 @@ const TagIndex: React.FC = () => {
   };
 
   return (
-    <div>
-      <h1>tags</h1>
+    <div className="admin-page tag-page">
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">文章标签</h1>
+          <p className="admin-page-subtitle">维护文章可复用的关键词标签。</p>
+        </div>
+      </div>
+      <div className="admin-panel tag-panel">
       {data?.map((item: tag) => (
         <Tag
           key={item.id}
@@ -71,6 +77,7 @@ const TagIndex: React.FC = () => {
           <PlusOutlined /> 添加新标签
         </Tag>
       )}
+      </div>
     </div>
   );
 };

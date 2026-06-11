@@ -34,20 +34,21 @@ const Myheader: React.FC = () => {
     />
   );
   return (
-    <Header style={{ background: '#fff', padding: 0 }}>
-      <div style={{
-        float: 'right',
-        marginRight: '20px',
-      }}>
-        <Dropdown overlay={menu}>
-          <a onClick={(e) => e.preventDefault()}>
-            <Space>
-              <span>{user?.nick_name}</span>
-              <UserOutlined />
-              <DownOutlined />
-            </Space>
-          </a>
-        </Dropdown>
+    <Header className="admin-header">
+      <div className="admin-header-title">
+        <strong>内容工作台</strong>
+        <span>写作、发布、评论和站点资产管理</span>
+      </div>
+      <div>
+      <Dropdown overlay={menu}>
+        <a className="admin-user-menu" onClick={(e) => e.preventDefault()}>
+          <Space>
+            <span>{user?.nick_name || '管理员'}</span>
+            <UserOutlined />
+            <DownOutlined />
+          </Space>
+        </a>
+      </Dropdown>
       </div>
     </Header>
   );

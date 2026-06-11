@@ -84,11 +84,20 @@ const Setting: React.FC = () => {
     })
   )
   return (
-    <div>
+    <div className="admin-table-page setting-page">
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">站点设置</h1>
+          <p className="admin-page-subtitle">管理站点标题、SEO、系统配置和运行参数。</p>
+        </div>
+      </div>
+      <div className="admin-toolbar">
       <Button
         onClick={() => setOpenModalCreate(true)}
-      >创建新的</Button>
+      >创建设置</Button>
+      </div>
       <ModalCreate open={openModalCreate} setOpen={setOpenModalCreate} okCallBack={runAsync} />
+      <div className="admin-table-card">
       <EditableProTable
         rowKey="id"
         columns={columns}
@@ -108,11 +117,9 @@ const Setting: React.FC = () => {
         recordCreatorProps={false}
         pagination={false}
         loading={loading}
-        style={{
-          paddingTop: "20px"
-        }}
         scroll={{ x: 'max-content' }}
       ></EditableProTable>
+      </div>
     </div>
 
   );

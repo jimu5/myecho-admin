@@ -8,10 +8,10 @@ import Footer from '@/components/Footer';
 
 const Main: React.FC = () => {
   return (
-    <main>
-      <Layout>
+    <main className="admin-app">
+      <Layout className="admin-shell">
         <Sider />
-        <Layout>
+        <Layout className="admin-main-layout">
           <Header />
           <Content />
           <Footer />

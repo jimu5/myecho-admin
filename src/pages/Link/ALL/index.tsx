@@ -70,11 +70,20 @@ const LinkALL: React.FC = () => {
   )
 
   return (
-    <div>
+    <div className="admin-table-page link-page">
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">友链管理</h1>
+          <p className="admin-page-subtitle">维护站点展示的外部链接、描述和封面图片。</p>
+        </div>
+      </div>
+      <div className="admin-toolbar">
       <Button
         onClick={() => setOpenModalCreate(true)}
-      >创建新的</Button>
+      >创建链接</Button>
+      </div>
       <ModalCreate open={openModalCreate} setOpen={setOpenModalCreate} okCallBack={runAsync} />
+      <div className="admin-table-card">
       <EditableProTable
         rowKey="id"
         columns={columns}
@@ -94,10 +103,8 @@ const LinkALL: React.FC = () => {
         recordCreatorProps={false}
         pagination={false}
         loading={loading}
-        style={{
-          paddingTop: "20px"
-        }}
       ></EditableProTable>
+      </div>
     </div>
   );
 }

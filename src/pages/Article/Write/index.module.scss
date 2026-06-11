@@ -1,24 +1,50 @@
 @import '../../../styles/style.scss';
 
+.writeLayout {
+  gap: 16px;
+  background: transparent !important;
+}
+
 .articleTitle {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
+  width: 100%;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  border: 1px solid rgba(35, 49, 61, 0.14);
+  border-radius: 14px;
+  outline: none;
+  background: rgba(255, 253, 250, 0.92);
+  color: #17212b;
+  font-size: 1.7rem;
+  font-weight: 800;
+  line-height: 1.25;
+  box-shadow: 0 12px 34px rgba(22, 34, 42, 0.06);
+}
+.articleTitle:focus {
+  border-color: rgba(15, 118, 110, 0.42);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
 }
 .submitDiv {
-  padding: 6px;
-  margin-top: 0.5rem;
+  padding: 0;
+  margin-top: 0;
 }
 .content {
-  margin-right: 0rem;
+  min-width: 0;
 }
 .sider {
-  margin-left: 0.5rem;
+  width: 300px !important;
+  min-width: 280px !important;
+  max-width: 320px !important;
+  margin-left: 0;
   background-color: rgba($color: #ffffff, $alpha: 0.0);
+  :global(.ant-layout-sider-children) {
+    position: sticky;
+    top: 84px;
+  }
   @media (max-width: 992px) {
-    position: fixed;
-    right: 10%;
-    top: 8%;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    position: static;
   }
 }
 .topPostDiv {
@@ -29,14 +55,14 @@
 .postBtn {
   @extend .btnBase;
   font-size: 13px;
-  border-radius: 3px;
+  border-radius: 999px;
 }
 .savePost {
   @extend .postBtn;
   float: left;
 }
 .postSettingDiv {
-  padding: 8px, 0, 0;
+  padding: 8px 0 0;
   height: 100%;
   width: 100%;
 }
@@ -44,6 +70,11 @@
   padding: 6px 10px 8px;
   height: 100%;
   width: 100%;
+  color: #66747f;
+  svg {
+    color: #0f766e;
+    margin-right: 6px;
+  }
 }
 .bottomPostDiv {
   padding: 6px;
@@ -63,7 +94,7 @@
   width: 100%;
 }
 .autoSaveText {
-  color: #86909c;
+  color: #66747f;
   font-size: 12px;
 }
 .previewBody {
@@ -79,14 +110,20 @@
   min-height: 150px;
   padding: 8px;
   cursor: pointer;
-  border: 1px solid #e5e6eb;
-  border-radius: 6px;
-  background: #fff;
+  border: 1px solid rgba(35, 49, 61, 0.14);
+  border-radius: 10px;
+  background: #fffdfa;
   display: grid;
   grid-template-rows: 110px auto;
   gap: 8px;
   text-align: left;
   color: #1f2937;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  &:hover {
+    border-color: rgba(15, 118, 110, 0.28);
+    box-shadow: 0 12px 28px rgba(22, 34, 42, 0.08);
+    transform: translateY(-1px);
+  }
   span {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -108,9 +145,9 @@
   align-items: center;
   justify-content: center;
   height: 110px;
-  border-radius: 4px;
-  background: #f2f3f5;
-  color: #4e5969;
+  border-radius: 8px;
+  background: #edf5f1;
+  color: #0b5d55;
   font-weight: bold;
   text-transform: uppercase;
 }

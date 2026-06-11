@@ -189,6 +189,12 @@ const Theme: React.FC = () => {
 
   return (
     <div className="theme-page">
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">主题管理</h1>
+          <p className="admin-page-subtitle">上传、预览、配置和切换前台主题。</p>
+        </div>
+      </div>
       <Row gutter={[16, 16]} className="theme-page__summary">
         <Col xs={24} md={8}>
           <Card bordered={false}>

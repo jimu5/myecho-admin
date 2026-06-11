@@ -2,3 +2,22 @@
   padding: 0px 0px;
   height: 36px;
 }
+
+.admin-write-page .vditor {
+  border: 1px solid rgba(35, 49, 61, 0.14);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fffdfa;
+  box-shadow: 0 18px 48px rgba(22, 34, 42, 0.08);
+}
+
+.admin-write-page .vditor-toolbar {
+  border-bottom-color: rgba(35, 49, 61, 0.12);
+  background: #f5f7f1;
+}
+
+.admin-write-page .vditor-reset {
+  color: #17212b;
+  font-size: 16px;
+  line-height: 1.78;
+}

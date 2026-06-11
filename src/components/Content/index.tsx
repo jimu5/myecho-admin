@@ -6,10 +6,12 @@ import routes from './routes';
 
 const MyContent: React.FC = () => {
   return (
-      <Content style={{ margin: '24px 16px 0', overflow: 'initial' }}>
-        <Suspense fallback={<div>Loading...</div>}>
+      <Content className="admin-content">
+        <div className="admin-content-inner">
+        <Suspense fallback={<div className="admin-loading">正在加载内容...</div>}>
           {useRoutes(routes)}
         </Suspense>
+        </div>
       </Content>
   );
 };

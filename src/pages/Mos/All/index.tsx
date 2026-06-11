@@ -107,8 +107,15 @@ const FileAll: React.FC = () => {
     },
   ];
   return (
-    <div>
+    <div className="admin-table-page file-page">
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">文件管理</h1>
+          <p className="admin-page-subtitle">查看上传资产，复制公开链接，并维护文件备注。</p>
+        </div>
+      </div>
 
+      <div className="admin-table-card">
       <EditableProTable
         columns={columns}
         rowKey={(data) => data.id}
@@ -138,6 +145,7 @@ const FileAll: React.FC = () => {
         scroll={{ x: 'max-content' }}
       >
       </EditableProTable>
+      </div>
     </div>
   )
 }

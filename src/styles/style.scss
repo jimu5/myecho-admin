@@ -14,10 +14,11 @@
 .btnBase {
   width: $btnWidth;
   bottom: 0;
-  border-radius: 14px;
-  color: #4e5969;
+  border-radius: 999px;
+  color: #0b5d55;
   cursor: pointer;
-  background-color: $themeColor1;
+  background-color: rgba(15, 118, 110, 0.1);
+  border: 1px solid rgba(15, 118, 110, 0.22);
   @extend .hover;
 }
 
@@ -31,7 +32,8 @@
   font-size: 18px;
   user-select: none;
   color: $textColor;
-  border-radius: 10px;
+  border-radius: 999px;
   cursor: pointer;
+  background: $themeColor1;
   @extend .hover;
 }

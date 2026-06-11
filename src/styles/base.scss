@@ -18,28 +18,28 @@ $space: 20px;
 // 不变的颜色
 $codeOther: #c9d1d9;
 // 按钮/字体高亮/hover
-$hoverColor: var(--hoverColor, rgb(98, 164, 218));
+$hoverColor: var(--hoverColor, #e9f3ef);
 
 // ---------浅白色-----------
 // 主色
-$themeColor: var(--themeColor, rgb(221, 239, 255));
+$themeColor: var(--themeColor, #fffdfa);
 // 副色1
-$themeColor1: var(--themeColor1, rgb(194, 209, 223));
+$themeColor1: var(--themeColor1, #edf5f1);
 // 副色2
-$themeColor2: var(--themeColor2, rgb(171, 185, 199));
+$themeColor2: var(--themeColor2, #d9e8e1);
 // 字体色
-$textColor: var(--textColor, rgb(53, 53, 53));
+$textColor: var(--textColor, #17212b);
 // 切换开关灰色
-$switchOff: var(--switchOff, rgb(184, 198, 211));
+$switchOff: var(--switchOff, #b6c6c0);
 // placeholder
-$tip: var(--tip, rgb(139, 139, 139));
+$tip: var(--tip, #66747f);
 // App背景色
-$bodyColor: var(--bodyColor, rgb(255, 255, 255));
+$bodyColor: var(--bodyColor, #f6f8f4);
 // footer透明背景色
-$footerBg: var(--footerBg, rgba(255, 255, 255, 0.3));
+$footerBg: var(--footerBg, rgba(255, 253, 250, 0.56));
 // 代码块背景
 $codeBg: var(--codeBg, rgb(50, 57, 63));
 // 稍微不明显的字体颜色（版权信息页）
-$textColor2: var(--textColor2, rgb(104, 104, 104));
+$textColor2: var(--textColor2, #66747f);
 // 行内代码
-$inlineCode: var(--inlineCode, rgb(205, 219, 233));
+$inlineCode: var(--inlineCode, #f5e7e2);

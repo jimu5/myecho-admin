@@ -65,14 +65,14 @@ const ModalCreate: React.FC<Props> = ({ open, setOpen, okCallBack }) => {
 
   return (
     <Modal
-      title="创建新的设置"
+      title="创建新链接"
       open={open}
       onOk={handleOk}
       onCancel={() => {
         setOpen(false);
       }}
     >
-      <Space>
+      <Space direction="vertical" style={{ width: '100%' }}>
         <Input placeholder="链接名" onChange={(e) => setLinkWrite({ ...LinkWrite!, name: e.target.value })} />
         <Input placeholder="链接描述" onChange={(e) => setLinkWrite({ ...LinkWrite!, description: e.target.value })} />
         <Input placeholder="链接地址" onChange={(e) => setLinkWrite({ ...LinkWrite!, url: e.target.value })} />

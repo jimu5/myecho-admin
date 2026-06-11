@@ -173,8 +173,15 @@ const All: React.FC = () => {
   ];
 
   return (
-    <div>
-      <Space key={filterResetKey} wrap style={{ marginBottom: 16 }}>
+    <div className="admin-table-page article-all-page">
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">所有文章</h1>
+          <p className="admin-page-subtitle">筛选、批量调整状态，并快速进入编辑或预览。</p>
+        </div>
+        <AdminNavLink to="article/write">写新文章</AdminNavLink>
+      </div>
+      <Space key={filterResetKey} wrap className="admin-filterbar">
         <Input.Search
           allowClear
           placeholder="搜索标题或摘要"
@@ -224,13 +231,14 @@ const All: React.FC = () => {
         />
         <Button onClick={resetFilters}>重置</Button>
       </Space>
-      <Space wrap style={{ marginBottom: 16 }}>
+      <Space wrap className="admin-actionbar">
         <Button disabled={selectedRowKeys.length === 0} onClick={() => batchUpdateStatus(1)}>批量公开</Button>
         <Button disabled={selectedRowKeys.length === 0} onClick={() => batchUpdateStatus(4)}>批量草稿</Button>
         <Popconfirm title="确认批量删除?" onConfirm={batchDelete}>
           <Button danger disabled={selectedRowKeys.length === 0}>批量删除</Button>
         </Popconfirm>
       </Space>
+      <div className="admin-table-card">
       <Table
         columns={columns}
         rowKey={(record) => record.id}
@@ -246,8 +254,17 @@ const All: React.FC = () => {
           current: page.current,
           onChange: (current, pageSize) => setPage({ current, pageSize }),
         }}
+        locale={{
+          emptyText: (
+            <div className="admin-empty">
+              <strong>没有找到文章</strong>
+              <span>调整筛选条件，或先写一篇新文章。</span>
+            </div>
+          ),
+        }}
         scroll={{ x: 'max-content' }}
       />
+      </div>
     </div>
   );
 };

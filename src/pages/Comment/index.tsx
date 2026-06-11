@@ -125,8 +125,14 @@ const CommentPage: React.FC = () => {
   ];
 
   return (
-    <div>
-      <Space wrap style={{ marginBottom: 16 }}>
+    <div className="admin-table-page comment-page">
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">评论审核</h1>
+          <p className="admin-page-subtitle">集中处理待审核、拒绝和垃圾评论。</p>
+        </div>
+      </div>
+      <Space wrap className="admin-filterbar">
         <Select
           allowClear
           placeholder="评论状态"
@@ -143,7 +149,7 @@ const CommentPage: React.FC = () => {
         </Select>
         <Button onClick={() => refresh()}>刷新</Button>
       </Space>
-      <Space wrap style={{ marginBottom: 16 }}>
+      <Space wrap className="admin-actionbar">
         <Button disabled={selectedRowKeys.length === 0} onClick={() => updateStatus(selectedRowKeys.map(Number), 2)}>批量通过</Button>
         <Button disabled={selectedRowKeys.length === 0} onClick={() => updateStatus(selectedRowKeys.map(Number), 3)}>批量拒绝</Button>
         <Button disabled={selectedRowKeys.length === 0} onClick={() => updateStatus(selectedRowKeys.map(Number), 4)}>标记垃圾</Button>
@@ -151,6 +157,7 @@ const CommentPage: React.FC = () => {
           <Button danger disabled={selectedRowKeys.length === 0}>批量删除</Button>
         </Popconfirm>
       </Space>
+      <div className="admin-table-card">
       <Table
         columns={columns}
         rowKey={(record) => record.id}
@@ -166,8 +173,17 @@ const CommentPage: React.FC = () => {
           current: page.current,
           onChange: (current, pageSize) => setPage({ current, pageSize }),
         }}
+        locale={{
+          emptyText: (
+            <div className="admin-empty">
+              <strong>暂无评论</strong>
+              <span>当前筛选状态下没有需要处理的评论。</span>
+            </div>
+          ),
+        }}
         scroll={{ x: 'max-content' }}
       />
+      </div>
     </div>
   );
 };

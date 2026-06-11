@@ -25,7 +25,14 @@ const Dashboard: React.FC = () => {
   const recentComments = (data?.pendingComments?.data || []) as comment[];
 
   return (
-    <div>
+    <div className="admin-page dashboard-page">
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">仪表盘</h1>
+          <p className="admin-page-subtitle">快速查看文章、草稿和待审评论的最新状态。</p>
+        </div>
+        <AdminNavLink to="article/write">写新文章</AdminNavLink>
+      </div>
       <Row gutter={[16, 16]}>
         <Col xs={24} md={8}>
           <Card loading={loading}>
@@ -48,6 +55,14 @@ const Dashboard: React.FC = () => {
           <Card title="最近文章" loading={loading}>
             <List
               dataSource={recentArticles}
+              locale={{
+                emptyText: (
+                  <div className="admin-empty">
+                    <strong>暂无文章</strong>
+                    <span>发布第一篇文章后会显示在这里。</span>
+                  </div>
+                ),
+              }}
               renderItem={(item) => (
                 <List.Item actions={[<AdminNavLink to={`article/write/${item.id}`}>编辑</AdminNavLink>]}>
                   <List.Item.Meta
@@ -65,6 +80,14 @@ const Dashboard: React.FC = () => {
           <Card title="待审评论" loading={loading}>
             <List
               dataSource={recentComments}
+              locale={{
+                emptyText: (
+                  <div className="admin-empty">
+                    <strong>暂无待审评论</strong>
+                    <span>新的评论提交后会进入审核队列。</span>
+                  </div>
+                ),
+              }}
               renderItem={(item) => (
                 <List.Item actions={[<AdminNavLink to="comments">审核</AdminNavLink>]}>
                   <List.Item.Meta

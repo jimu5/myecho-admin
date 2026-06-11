@@ -132,7 +132,7 @@ describe('LinkALL', () => {
     await screen.findByText('Go');
 
     await act(async () => {
-      fireEvent.click(screen.getByText('创建新的'));
+      fireEvent.click(screen.getByText('创建链接'));
     });
 
     expect(screen.getByRole('dialog')).toHaveTextContent('mock create modal');

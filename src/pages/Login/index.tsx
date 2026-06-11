@@ -4,10 +4,7 @@ import LoginBox from './Box';
 
 const Login = () => {
   return (
-    <div style={{
-      position: "relative",
-      top: "120px"
-    }}>
+    <div className="login-page">
       <LoginBox />
     </div>
   );

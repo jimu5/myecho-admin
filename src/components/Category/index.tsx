@@ -10,9 +10,11 @@ import CreateBox from './create_box';
 interface props {
   getAllMethod(): Promise<category[]>;
   CreateMethod(arg: any): Promise<any>;
+  title?: string;
+  subtitle?: string;
 }
 
-const Category: React.FC<props> = ( { getAllMethod, CreateMethod}) => {
+const Category: React.FC<props> = ( { getAllMethod, CreateMethod, title = '分类管理', subtitle = '创建和整理站点内容分类。' }) => {
   const { data, runAsync } = useRequest<category[], any>(() =>
     getAllMethod().then((data) => {
       buildTree(data);
@@ -48,9 +50,19 @@ const Category: React.FC<props> = ( { getAllMethod, CreateMethod}) => {
   );
 
   return (
-    <div>
+    <div className="admin-page category-page">
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">{title}</h1>
+          <p className="admin-page-subtitle">{subtitle}</p>
+        </div>
+      </div>
+      <div className="admin-panel category-create-panel">
       <CreateBox CreateMethod={CreateMethod} data={data || []} runAsync={runAsync} />
+      </div>
+      <div className="admin-panel category-tree-panel">
       <Tree treeData={tree}></Tree>
+      </div>
     </div>
   );
 };
