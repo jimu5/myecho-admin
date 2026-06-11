@@ -26,8 +26,10 @@ jest.mock('@/utils/apis/mos', () => ({
 }), { virtual: true });
 
 jest.mock('@/utils/image_tool', () => ({
-  isAssetTypeAnImage: jest.fn(() => true),
+  isAssetTypeAnImage: () => true,
 }), { virtual: true });
+
+jest.mock('dayjs', () => () => ({ format: () => '2024-01-02 03:04:05' }));
 
 jest.mock('@ant-design/icons', () => ({
   PaperClipOutlined: () => <span>clip icon</span>,
@@ -92,6 +94,7 @@ jest.mock('@ant-design/pro-table', () => ({
   EditableProTable: ({ value = [], loading, columns, editable, pagination }: any) => {
     const firstRow = value[0] || tableRows[0];
     const actionColumn = columns.find((column: any) => column.key === 'action');
+    const dataColumns = columns.filter((column: any) => column.key !== 'action');
 
     return (
       <div>
@@ -101,6 +104,11 @@ jest.mock('@ant-design/pro-table', () => ({
         <span data-testid="page-size">{pagination.pageSize}</span>
         <span data-testid="file-name">{firstRow.full_name}</span>
         <span data-testid="file-note">{firstRow.note}</span>
+        {dataColumns.map((column: any) => (
+          <div data-testid={`column-${column.dataIndex}`} key={column.dataIndex}>
+            {column.render ? column.render(firstRow[column.dataIndex], firstRow) : firstRow[column.dataIndex]}
+          </div>
+        ))}
         <button onClick={() => pagination.onChange(2, 20, 'logo')}>page with search</button>
         <button onClick={() => editable.onSave(firstRow.id, { ...firstRow, note: 'updated note' }, firstRow)}>
           save file
@@ -114,6 +122,10 @@ jest.mock('@ant-design/pro-table', () => ({
 describe('FileAll', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: jest.fn() },
+    });
     (MosAPI.getList as jest.Mock).mockResolvedValue({
       total: 1,
       data: tableRows,
@@ -129,6 +141,8 @@ describe('FileAll', () => {
     await waitFor(() => expect(screen.getByTestId('total')).toHaveTextContent('1'));
     expect(screen.getByTestId('file-name')).toHaveTextContent('avatar.png');
     expect(screen.getByTestId('file-note')).toHaveTextContent('old note');
+    expect(screen.getByAltText('preview')).toHaveAttribute('src', '/assets/avatar.png');
+    expect(screen.getByText('2024-01-02 03:04:05')).toBeInTheDocument();
   });
 
   test('passes pagination and search params when table page changes', async () => {
@@ -161,5 +175,14 @@ describe('FileAll', () => {
       note: 'updated note',
     })));
     expect(MosAPI.getList).toHaveBeenCalledTimes(2);
+  });
+
+  test('copies public file link', async () => {
+    render(<FileAll />);
+
+    await waitFor(() => expect(screen.getByText('复制链接')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('复制链接'));
+
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(expect.stringContaining('/assets/avatar.png'));
   });
 });

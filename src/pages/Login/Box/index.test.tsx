@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import LoginBox from './index';
 import { UserApi } from '@/utils/apis/user';
+import { redirectToAdmin } from '@/utils/navigation';
 
 jest.mock('react-redux', () => ({
   connect: () => (Component: React.ComponentType) => Component,
@@ -14,23 +15,14 @@ jest.mock('@/utils/apis/user', () => ({
   },
 }), { virtual: true });
 
-describe('LoginBox', () => {
-  const originalLocation = window.location;
+jest.mock('@/utils/navigation', () => ({
+  redirectToAdmin: jest.fn(),
+}), { virtual: true });
 
+describe('LoginBox', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     localStorage.clear();
-    Object.defineProperty(window, 'location', {
-      configurable: true,
-      value: { href: '' },
-    });
-  });
-
-  afterAll(() => {
-    Object.defineProperty(window, 'location', {
-      configurable: true,
-      value: originalLocation,
-    });
   });
 
   test('logs in with username and stores user', async () => {
@@ -45,7 +37,7 @@ describe('LoginBox', () => {
 
     expect(UserApi.login).toHaveBeenCalledWith({ email: '', name: 'admin', password: 'secret' });
     await waitFor(() => expect(localStorage.getItem('user')).toContain('abc'));
-    expect(window.location.href).toBe('/admin');
+    expect(redirectToAdmin).toHaveBeenCalledTimes(1);
   });
 
   test('logs in with email when input contains at sign', async () => {
@@ -76,6 +68,6 @@ describe('LoginBox', () => {
     });
 
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('账号或密码错误'));
-    expect(window.location.href).toBe('');
+    expect(redirectToAdmin).not.toHaveBeenCalled();
   });
 });

@@ -39,7 +39,7 @@ jest.mock('@/utils/apis/comment', () => ({
 }), { virtual: true });
 
 jest.mock('antd', () => {
-  const Select = ({ children, onChange, value }: any) => (
+  const Select: any = ({ children, onChange, value }: any) => (
     <div>
       <span data-testid="status-filter">{value}</span>
       <button onClick={() => onChange(2)}>filter approved</button>
@@ -56,10 +56,15 @@ jest.mock('antd', () => {
     Table: ({ dataSource = [], columns, rowSelection, pagination }: any) => {
       const row = dataSource[0] || commentRows[0];
       const actionColumn = columns.find((column: any) => column.key === 'action');
+      const dataColumns = columns.filter((column: any) => column.key !== 'action');
       return (
         <div>
           <span data-testid="total">{pagination.total}</span>
-          <span>{row.content}</span>
+          {dataColumns.map((column: any) => (
+            <div data-testid={`column-${column.key}`} key={column.key}>
+              {column.render ? column.render(row[column.dataIndex], row) : row[column.dataIndex]}
+            </div>
+          ))}
           <button onClick={() => rowSelection.onChange([row.id])}>select row</button>
           <button onClick={() => pagination.onChange(2, 20)}>next page</button>
           {actionColumn.render(null, row)}

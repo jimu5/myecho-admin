@@ -2,6 +2,7 @@ import { useSafeState, useLocalStorageState } from 'ahooks';
 import React from 'react';
 import { connect } from 'react-redux';
 import { UserApi } from '@/utils/apis/user';
+import { redirectToAdmin } from '@/utils/navigation';
 
 import s from './index.module.scss';
 
@@ -25,7 +26,7 @@ const LoginBox: React.FC = () => {
     setLoading(true);
     UserApi.login({ email, name, password }).then((res) => {
       setUser(res);
-      window.location.href = '/admin';
+      redirectToAdmin();
     }).catch((error) => {
       setErrorMsg(error?.msg || error?.message || '登录失败，请检查账号或密码');
     }).finally(() => {

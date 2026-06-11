@@ -49,7 +49,7 @@ jest.mock('@/utils/apis/tag', () => ({
 }), { virtual: true });
 
 jest.mock('antd', () => {
-  const Select = ({ children, onChange, placeholder }: any) => (
+  const Select: any = ({ children, onChange, placeholder }: any) => (
     <div>
       <button onClick={() => onChange(placeholder === '状态' ? 4 : placeholder === '分类' ? 'cat-tech' : 'tag-go')}>
         select {placeholder}
@@ -58,11 +58,11 @@ jest.mock('antd', () => {
     </div>
   );
   Select.Option = ({ children }: any) => <span>{children}</span>;
-  const DatePicker = () => null;
+  const DatePicker: any = () => null;
   DatePicker.RangePicker = ({ onChange }: any) => (
     <button onClick={() => onChange(null, ['2026-05-01', '2026-05-31'])}>select date</button>
   );
-  const Input = () => null;
+  const Input: any = () => null;
   Input.Search = ({ onSearch }: any) => <button onClick={() => onSearch('hello')}>search keyword</button>;
 
   return {

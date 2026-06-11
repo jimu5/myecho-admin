@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import Vditor from 'vditor';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useLocalStorageState, useRequest, useSafeState } from 'ahooks';
@@ -204,7 +204,7 @@ const ArticleWrite: React.FC = () => {
       upload: vditorUploadOptions,
       input: () => {
         setDirty(true);
-        setAutoSavedAt(moment().format('HH:mm:ss'));
+        setAutoSavedAt(dayjs().format('HH:mm:ss'));
       },
     });
     TagApi.getList().then((data) => {
@@ -321,7 +321,7 @@ const ArticleWrite: React.FC = () => {
                   showTime
                   format="YYYY-MM-DDTHH:mm:ssZ"
                   locale={myLocale.DatePicker}
-                  value={moment(
+                  value={dayjs(
                     articleDetail?.post_time || articleEditCache.post_time
                   )}
                   onChange={(_, dateString) => {

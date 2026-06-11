@@ -111,11 +111,11 @@ jest.mock('@ant-design/icons', () => ({
 }));
 
 jest.mock('antd', () => {
-  const Layout = ({ children }: any) => <div>{children}</div>;
+  const Layout: any = ({ children }: any) => <div>{children}</div>;
   Layout.Content = ({ children }: any) => <main>{children}</main>;
   Layout.Sider = ({ children }: any) => <aside>{children}</aside>;
 
-  const Select = ({ mode, onChange, value, children }: any) => (
+  const Select: any = ({ mode, onChange, value, children }: any) => (
     <div>
       <span data-testid={mode === 'multiple' ? 'tag-value' : 'status-value'}>
         {Array.isArray(value) ? value.join(',') : value}
@@ -131,14 +131,14 @@ jest.mock('antd', () => {
   Select.Option = ({ children }: any) => <span>{children}</span>;
   const Button = ({ children, onClick, disabled }: any) => <button disabled={disabled} onClick={onClick}>{children}</button>;
   const Modal = ({ children, open }: any) => open ? <div>{children}</div> : null;
-  const Input = ({ value, onChange }: any) => <input aria-label="media keyword" value={value} onChange={onChange} />;
+  const Input: any = ({ value, onChange }: any) => <input aria-label="media keyword" value={value} onChange={onChange} />;
   Input.Search = ({ value, onChange, onSearch, placeholder }: any) => (
     <div>
       <input aria-label={placeholder} value={value} onChange={onChange} />
       <button onClick={() => onSearch(value)}>search media</button>
     </div>
   );
-  const List = ({ dataSource = [], renderItem, pagination }: any) => (
+  const List: any = ({ dataSource = [], renderItem, pagination }: any) => (
     <div>
       {dataSource.map((item: any) => <div key={item.id}>{renderItem(item)}</div>)}
       {pagination && (

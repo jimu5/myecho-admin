@@ -1,4 +1,4 @@
-@import './base.scss';
+@use './base.scss' as *;
 
 .trans {
   transition: all 0.3s !important;

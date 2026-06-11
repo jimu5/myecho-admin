@@ -16,7 +16,7 @@ jest.mock('@/utils/apis/theme', () => ({
 }), { virtual: true });
 
 jest.mock('antd', () => {
-  const Form = ({ children }: any) => <form>{children}</form>;
+  const Form: any = ({ children }: any) => <form>{children}</form>;
   Form.useForm = () => [
     {
       validateFields: mockValidateFields,
@@ -30,7 +30,7 @@ jest.mock('antd', () => {
       {children}
     </label>
   );
-  const Input = (props: any) => <input {...props} />;
+  const Input: any = (props: any) => <input {...props} />;
   Input.TextArea = (props: any) => <textarea {...props} />;
   return {
     Modal: ({ title, open, onOk, onCancel, children }: any) =>
