@@ -43,13 +43,23 @@ describe('MySider', () => {
     mockNavigate.mockClear();
   });
 
-  test('renders menu items and navigates by key', () => {
+  test('renders menu items and navigates with absolute admin paths', () => {
     render(<MySider />);
 
     fireEvent.click(screen.getByText('写文章'));
 
     expect(screen.getByText('仪表盘')).toBeInTheDocument();
     expect(screen.getByText('主题管理')).toBeInTheDocument();
-    expect(mockNavigate).toHaveBeenCalledWith('article/write');
+    expect(mockNavigate).toHaveBeenCalledWith('/admin/article/write');
+  });
+
+  test('keeps nested menu clicks from appending to the current route', () => {
+    render(<MySider />);
+
+    fireEvent.click(screen.getByText('所有文章'));
+    fireEvent.click(screen.getByText('所有文章'));
+
+    expect(mockNavigate).toHaveBeenNthCalledWith(1, '/admin/article/all');
+    expect(mockNavigate).toHaveBeenNthCalledWith(2, '/admin/article/all');
   });
 });

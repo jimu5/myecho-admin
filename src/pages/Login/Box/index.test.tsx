@@ -26,7 +26,7 @@ describe('LoginBox', () => {
   });
 
   test('logs in with username and stores user', async () => {
-    (UserApi.login as jest.Mock).mockResolvedValue({ token: 'abc', nick_name: 'Admin' });
+    (UserApi.login as jest.Mock).mockResolvedValue({ token: 'abc', nick_name: 'Admin', permission_type: 0 });
 
     render(<LoginBox />);
     fireEvent.change(screen.getByPlaceholderText('用户名或邮箱'), { target: { value: 'admin' } });
@@ -41,7 +41,7 @@ describe('LoginBox', () => {
   });
 
   test('logs in with email when input contains at sign', async () => {
-    (UserApi.login as jest.Mock).mockResolvedValue({ token: 'email-token' });
+    (UserApi.login as jest.Mock).mockResolvedValue({ token: 'email-token', permission_type: 0 });
 
     render(<LoginBox />);
     fireEvent.change(screen.getByPlaceholderText('用户名或邮箱'), { target: { value: 'admin@example.com' } });
@@ -68,6 +68,21 @@ describe('LoginBox', () => {
     });
 
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('账号或密码错误'));
+    expect(redirectToAdmin).not.toHaveBeenCalled();
+  });
+
+  test('keeps non-admin users on the login page', async () => {
+    (UserApi.login as jest.Mock).mockResolvedValue({ token: 'normal-token', permission_type: 1 });
+
+    render(<LoginBox />);
+    fireEvent.change(screen.getByPlaceholderText('用户名或邮箱'), { target: { value: 'writer' } });
+    fireEvent.change(screen.getByPlaceholderText('密码'), { target: { value: 'secret' } });
+    await act(async () => {
+      fireEvent.submit(screen.getByRole('button', { name: '登录' }).closest('form')!);
+    });
+
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('当前账号无后台管理权限'));
+    expect(localStorage.getItem('user')).toBeNull();
     expect(redirectToAdmin).not.toHaveBeenCalled();
   });
 });

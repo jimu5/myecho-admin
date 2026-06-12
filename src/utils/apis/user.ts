@@ -21,7 +21,7 @@ export interface loginResponse {
 }
 
 export class UserApi {
-    static login(params: loginParams) {
-        return axios.post("/login", params);
+    static login(params: loginParams): Promise<loginResponse> {
+        return axios.post<any, loginResponse>("/login", params);
     }
 }

@@ -1,13 +1,18 @@
 import { notification } from 'antd';
 
 jest.mock('@/utils/config', () => ({ baseApiUrl: '/api' }), { virtual: true });
+jest.mock('@/utils/navigation', () => ({
+  redirectToLogin: jest.fn(),
+}));
 
 import instance, { getAuthHeaders, getCurrentUser } from './myaxios';
+import { redirectToLogin } from '@/utils/navigation';
 
 describe('myaxios auth helpers', () => {
   beforeEach(() => {
     localStorage.clear();
     jest.restoreAllMocks();
+    jest.clearAllMocks();
   });
 
   test('reads current user from localStorage', () => {
@@ -61,6 +66,31 @@ describe('myaxios auth helpers', () => {
     expect(errorSpy).toHaveBeenCalledWith({
       message: '错误代码: NETWORK',
       description: 'Network Error',
+    });
+  });
+
+  test('clears local user and redirects to login on auth failures', async () => {
+    localStorage.setItem('user', JSON.stringify({ token: 'stale' }));
+    const errorSpy = jest.spyOn(notification, 'error').mockImplementation(() => undefined as any);
+    const errorHandler = (instance.interceptors.response as any).handlers[0].rejected;
+
+    await expect(errorHandler({
+      response: {
+        status: 403,
+        data: { code: 4033, msg: '无权限' },
+      },
+    })).rejects.toEqual({
+      response: {
+        status: 403,
+        data: { code: 4033, msg: '无权限' },
+      },
+    });
+
+    expect(localStorage.getItem('user')).toBeNull();
+    expect(redirectToLogin).toHaveBeenCalledTimes(1);
+    expect(errorSpy).toHaveBeenCalledWith({
+      message: '错误代码: 4033',
+      description: '无权限',
     });
   });
 });

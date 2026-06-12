@@ -7,6 +7,7 @@ import menuConfig from './menuConfig';
 
 
 const { Sider } = Layout;
+const adminRoute = (key: string) => key.startsWith('/admin') ? key : `/admin/${key}`;
 
 const MySider: React.FC = () => {
 
@@ -55,7 +56,7 @@ const MySider: React.FC = () => {
             window.location.href = '/';
             return;
           }
-          navigate(item.key);
+          navigate(adminRoute(String(item.key)));
         }}
       />
     </Sider>

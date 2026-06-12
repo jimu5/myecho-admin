@@ -1,6 +1,7 @@
 import axios from "axios";
 import { notification } from "antd";
 import { baseApiUrl } from "@/utils/config";
+import { redirectToLogin } from "@/utils/navigation";
 
 const instance = axios.create({
   baseURL: baseApiUrl,
@@ -13,6 +14,8 @@ interface ApiEnvelope<T = any> {
   data: T;
   meta?: Record<string, any>;
 }
+
+const AUTH_ERROR_CODES = new Set([4011, 4033]);
 
 export const getCurrentUser = () => JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -48,6 +51,7 @@ instance.interceptors.response.use(
     const payload = response.data;
     if (isApiEnvelope(payload)) {
       if (payload.code !== 0) {
+        handleAuthFailure(payload.code);
         notification.error({
           message: '错误代码: ' + payload.code,
           description: payload.msg,
@@ -65,6 +69,7 @@ instance.interceptors.response.use(
     // Any status codes that falls outside the range of 2xx cause this function to trigger
     // Do something with response error
     const responseData = error.response?.data || {};
+    handleAuthFailure(getResponseCode(responseData), error.response?.status);
     notification.error({
       message: '错误代码: ' + (responseData.code || responseData.Code || error.response?.status || 'NETWORK'),
       description: responseData.msg || responseData.Msg || error.message,
@@ -79,6 +84,28 @@ function isApiEnvelope(payload: any): payload is ApiEnvelope {
     && typeof payload.code === 'number'
     && typeof payload.msg === 'string'
     && Object.prototype.hasOwnProperty.call(payload, 'data');
+}
+
+function getResponseCode(payload: any): number | undefined {
+  const code = payload?.code ?? payload?.Code;
+  if (typeof code === 'number') {
+    return code;
+  }
+  if (typeof code === 'string') {
+    const parsed = Number(code);
+    return Number.isNaN(parsed) ? undefined : parsed;
+  }
+  return undefined;
+}
+
+function handleAuthFailure(code?: number, status?: number) {
+  if (status !== 401 && (code === undefined || !AUTH_ERROR_CODES.has(code))) {
+    return;
+  }
+  localStorage.removeItem('user');
+  if (window.location.pathname !== '/admin/login') {
+    redirectToLogin();
+  }
 }
 
 export default instance;

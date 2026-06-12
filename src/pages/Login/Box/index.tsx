@@ -1,17 +1,19 @@
 import { useSafeState, useLocalStorageState } from 'ahooks';
 import React from 'react';
 import { connect } from 'react-redux';
-import { UserApi } from '@/utils/apis/user';
+import { loginResponse, UserApi } from '@/utils/apis/user';
 import { redirectToAdmin } from '@/utils/navigation';
 
 import s from './index.module.scss';
+
+const ADMIN_PERMISSION_TYPE = 0;
 
 const LoginBox: React.FC = () => {
   const [nameOrEmail, setNameOrEmail] = useSafeState('');
   const [password, setPassword] = useSafeState('');
   const [loading, setLoading] = useSafeState(false);
   const [errorMsg, setErrorMsg] = useSafeState('');
-  const [, setUser] = useLocalStorageState('user');
+  const [, setUser] = useLocalStorageState<loginResponse | undefined>('user');
 
   const handleLogin = (event?: React.FormEvent) => {
     event?.preventDefault();
@@ -25,6 +27,16 @@ const LoginBox: React.FC = () => {
     setErrorMsg('');
     setLoading(true);
     UserApi.login({ email, name, password }).then((res) => {
+      if (!res?.token) {
+        setUser(undefined);
+        setErrorMsg('登录响应缺少 Token，请重试');
+        return;
+      }
+      if (res.permission_type !== ADMIN_PERMISSION_TYPE) {
+        setUser(undefined);
+        setErrorMsg('当前账号无后台管理权限');
+        return;
+      }
       setUser(res);
       redirectToAdmin();
     }).catch((error) => {
