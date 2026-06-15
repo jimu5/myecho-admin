@@ -79,6 +79,11 @@ const menuConfig = [
     key: 'theme',
     icon: <AppstoreOutlined />,
     label: '主题管理'
+  },
+  {
+    key: 'static-pages',
+    icon: <FileOutlined />,
+    label: '静态页面'
   }
 ];
 

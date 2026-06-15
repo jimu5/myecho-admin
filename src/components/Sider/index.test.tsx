@@ -50,6 +50,7 @@ describe('MySider', () => {
 
     expect(screen.getByText('仪表盘')).toBeInTheDocument();
     expect(screen.getByText('主题管理')).toBeInTheDocument();
+    expect(screen.getByText('静态页面')).toBeInTheDocument();
     expect(mockNavigate).toHaveBeenCalledWith('/admin/article/write');
   });
 
@@ -61,5 +62,13 @@ describe('MySider', () => {
 
     expect(mockNavigate).toHaveBeenNthCalledWith(1, '/admin/article/all');
     expect(mockNavigate).toHaveBeenNthCalledWith(2, '/admin/article/all');
+  });
+
+  test('navigates to static page management', () => {
+    render(<MySider />);
+
+    fireEvent.click(screen.getByText('静态页面'));
+
+    expect(mockNavigate).toHaveBeenCalledWith('/admin/static-pages');
   });
 });

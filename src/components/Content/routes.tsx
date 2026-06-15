@@ -19,6 +19,7 @@ const elements = {
   comment: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Comment')),
   setting: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Setting')),
   theme: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Theme')),
+  staticPage: lazy(() => import(/* webpackPrefetch:true */ '@/pages/StaticPage')),
 };
 
 const contentRoutes = [
@@ -87,6 +88,10 @@ const contentRoutes = [
   {
     path: 'theme',
     element: <elements.theme />,
+  },
+  {
+    path: 'static-pages',
+    element: <elements.staticPage />,
   }
 ];
 

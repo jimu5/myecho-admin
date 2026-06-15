@@ -48,6 +48,7 @@ describe('layout components', () => {
       'comments',
       'setting',
       'theme',
+      'static-pages',
     ]);
   });
 

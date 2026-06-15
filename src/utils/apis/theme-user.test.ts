@@ -1,5 +1,6 @@
 import axios from '../myaxios';
 
+import { StaticPageApi } from './staticPage';
 import { ThemeApi } from './theme';
 import { UserApi } from './user';
 
@@ -72,6 +73,38 @@ describe('ThemeApi', () => {
         'Content-Type': 'multipart/form-data',
       },
       timeout: 30000,
+    });
+    const formData = mockedAxios.post.mock.calls[0][1] as FormData;
+    const uploadedFile = formData.get('file') as File;
+    expect(uploadedFile).toBeInstanceOf(File);
+    expect(uploadedFile.size).toBe(file.size);
+    expect(uploadedFile.name).toBe('blob');
+  });
+});
+
+describe('StaticPageApi', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('uses expected static page endpoints', () => {
+    StaticPageApi.getAll();
+    expect(mockedAxios.get).toHaveBeenCalledWith('/static-pages');
+
+    StaticPageApi.delete('campaign');
+    expect(mockedAxios.delete).toHaveBeenCalledWith('/static-pages/campaign');
+  });
+
+  test('uploads static page zip as multipart form data', () => {
+    const file = new Blob(['zip']);
+
+    StaticPageApi.upload(file);
+
+    expect(mockedAxios.post).toHaveBeenCalledWith('/static-pages/upload', expect.any(FormData), {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      timeout: 60000,
     });
     const formData = mockedAxios.post.mock.calls[0][1] as FormData;
     const uploadedFile = formData.get('file') as File;
