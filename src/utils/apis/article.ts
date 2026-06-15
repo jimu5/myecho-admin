@@ -27,11 +27,19 @@ export const articleTypes = new Map([
     [2, '页面']
 ])
 
+export type ArticleContentFormat = 'markdown' | 'html';
+
+export const articleContentFormats = new Map<ArticleContentFormat, string>([
+    ['markdown', 'Markdown'],
+    ['html', 'HTML']
+])
+
 // 单个文章的结构
 export interface article extends baseReturn {
     author: user;
     title: string;
     slug: string;
+    content_format: ArticleContentFormat;
     summary: string;
     detail: articleDetail;
     category_uid: string;
@@ -51,6 +59,7 @@ export interface article extends baseReturn {
 export interface articleRequest {
     title?: string;
     slug?: string;
+    content_format?: ArticleContentFormat;
     summary?: string;
     content?: string;
     category_uid?: string;

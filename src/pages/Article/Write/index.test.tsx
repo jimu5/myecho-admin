@@ -69,6 +69,10 @@ jest.mock('@/utils/apis/article', () => ({
     [1, '文章'],
     [2, '页面'],
   ]),
+  articleContentFormats: new Map([
+    ['markdown', 'Markdown'],
+    ['html', 'HTML'],
+  ]),
   ArticleApi: {
     get_no_read: jest.fn(),
     patch: jest.fn(),
@@ -109,6 +113,7 @@ jest.mock('@/utils/config', () => ({
 jest.mock('@ant-design/icons', () => ({
   KeyOutlined: () => <span />,
   ClockCircleOutlined: () => <span />,
+  CodeOutlined: () => <span />,
   CommentOutlined: () => <span />,
   TagsOutlined: () => <span />,
   FolderOutlined: () => <span />,
@@ -121,13 +126,13 @@ jest.mock('antd', () => {
 
   const Select: any = ({ mode, onChange, value, children, 'aria-label': ariaLabel }: any) => (
     <div>
-      <span data-testid={mode === 'multiple' ? 'tag-value' : ariaLabel === '内容类型' ? 'type-value' : 'status-value'}>
+      <span data-testid={mode === 'multiple' ? 'tag-value' : ariaLabel === '内容类型' ? 'type-value' : ariaLabel === '内容格式' ? 'format-value' : 'status-value'}>
         {Array.isArray(value) ? value.join(',') : value}
       </span>
       <button
         type="button"
-        onClick={() => onChange(mode === 'multiple' ? ['tag-react', 'tag-ts'] : ariaLabel === '内容类型' ? 2 : 3)}>
-        {mode === 'multiple' ? 'select tags' : ariaLabel === '内容类型' ? 'select type' : 'select status'}
+        onClick={() => onChange(mode === 'multiple' ? ['tag-react', 'tag-ts'] : ariaLabel === '内容类型' ? 2 : ariaLabel === '内容格式' ? 'html' : 3)}>
+        {mode === 'multiple' ? 'select tags' : ariaLabel === '内容类型' ? 'select type' : ariaLabel === '内容格式' ? 'select format' : 'select status'}
       </button>
       {children}
     </div>
@@ -203,6 +208,7 @@ const editArticle = {
   title: 'Old title',
   slug: 'old-title',
   type: 1,
+  content_format: 'markdown',
   is_password_protected: true,
   summary: 'Old summary',
   detail: { id: 7, content: 'Loaded markdown' },
@@ -258,6 +264,7 @@ describe('ArticleWrite', () => {
     expect(screen.getByPlaceholderText('自定义链接 slug')).toHaveValue('old-title');
     expect(screen.getByTestId('status-value')).toHaveTextContent('2');
     expect(screen.getByTestId('type-value')).toHaveTextContent('1');
+    expect(screen.getByTestId('format-value')).toHaveTextContent('markdown');
     expect(screen.getByTestId('tag-value')).toHaveTextContent('tag-old');
   });
 
@@ -272,6 +279,7 @@ describe('ArticleWrite', () => {
     fireEvent.change(screen.getByPlaceholderText('访问密码'), { target: { value: 'new secret' } });
     fireEvent.click(screen.getByText('select status'));
     fireEvent.click(screen.getByText('select type'));
+    fireEvent.click(screen.getByText('select format'));
     fireEvent.click(screen.getByText('set post time'));
     fireEvent.click(screen.getByText('comments off'));
     fireEvent.click(screen.getByText('select tags'));
@@ -284,6 +292,7 @@ describe('ArticleWrite', () => {
         title: 'Updated title',
         slug: 'updated-title',
         type: 2,
+        content_format: 'html',
         password: 'new secret',
         status: 3,
         post_time: '2026-05-28T09:30:00+08:00',
@@ -304,6 +313,7 @@ describe('ArticleWrite', () => {
     fireEvent.change(screen.getByPlaceholderText('自定义链接 slug'), { target: { value: 'new-article' } });
     fireEvent.click(screen.getByText('select status'));
     fireEvent.click(screen.getByText('select type'));
+    fireEvent.click(screen.getByText('select format'));
     fireEvent.click(screen.getByText('set post time'));
     fireEvent.click(screen.getByText('comments off'));
     fireEvent.click(screen.getByText('select tags'));
@@ -314,6 +324,7 @@ describe('ArticleWrite', () => {
       title: 'New article',
       slug: 'new-article',
       type: 2,
+      content_format: 'html',
       status: 3,
       post_time: '2026-05-28T09:30:00+08:00',
       is_allow_comment: true,
@@ -369,6 +380,16 @@ describe('ArticleWrite', () => {
       title: 'Draft article',
       status: 4,
     })));
+  });
+
+  test('previews html articles from raw editor content', async () => {
+    await renderArticleWrite();
+
+    fireEvent.click(screen.getByText('select format'));
+    fireEvent.click(screen.getByText('预览'));
+
+    expect(screen.getByText('Editor content')).toBeInTheDocument();
+    expect(screen.queryByText('<p>Editor content</p>')).not.toBeInTheDocument();
   });
 
   test('marks metadata edits as unsaved changes', async () => {

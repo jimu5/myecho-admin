@@ -21,13 +21,14 @@ import {
 import {
   KeyOutlined,
   ClockCircleOutlined,
+  CodeOutlined,
   CommentOutlined,
   TagsOutlined,
   FolderOutlined,
 } from '@ant-design/icons';
 import 'vditor/dist/index.css';
 
-import { article, articleRequest, ArticleApi, articleStatus, articleTypes } from '@/utils/apis/article';
+import { article, articleRequest, ArticleApi, articleStatus, articleTypes, articleContentFormats } from '@/utils/apis/article';
 import { tag, TagApi } from '@/utils/apis/tag';
 import { category, CategoryApi } from '@/utils/apis/category';
 import { vditorUploadOptions } from '@/utils/vditorConfg';
@@ -82,7 +83,7 @@ const ArticleWrite: React.FC = () => {
   const [mediaPage, setMediaPage] = useSafeState({ current: 1, pageSize: 20 });
   const [articleEditCache, setArticleEditCache] =
     useLocalStorageState<ArticleLocalCache>('articleEditCache', {
-      defaultValue: { status: 1, visibility: 1, type: 1 },
+      defaultValue: { status: 1, visibility: 1, type: 1, content_format: 'markdown' },
     });
   const [articleDetail, setArticleDetail] = useSafeState<article | undefined>();
 
@@ -91,6 +92,17 @@ const ArticleWrite: React.FC = () => {
       return articleDetail;
     }
     return articleEditCache;
+  };
+
+  const getContentFormat = () => getEditArticle()?.content_format || 'markdown';
+
+  const getEditorContent = () => vditor?.getValue() || '';
+
+  const getPreviewHTML = () => {
+    if (getContentFormat() === 'html') {
+      return getEditorContent();
+    }
+    return (vditor as any)?.getHTML?.() || getEditorContent();
   };
 
   const setEditArticle = (values: any) => {
@@ -145,7 +157,8 @@ const ArticleWrite: React.FC = () => {
 
   const saveArticle = useCallback((override: Partial<articleRequest> = {}) => {
     let data: articleRequest = {
-      content: vditor?.getValue(),
+      content: getEditorContent(),
+      content_format: getContentFormat(),
       ...override,
     };
     if (article_id) {
@@ -339,6 +352,23 @@ const ArticleWrite: React.FC = () => {
                   ))}
                 </Select>
               </div>
+              <div
+                className={s.postSettingSection}
+              >
+                <CodeOutlined />
+                <span>格式：</span>
+                <Select
+                  aria-label="内容格式"
+                  style={{ width: '60%' }}
+                  value={getContentFormat()}
+                  onChange={(value) => {
+                    setEditArticle({ content_format: value });
+                  }}>
+                  {Array.from(articleContentFormats).map(item => (
+                    <Option value={item[0]} key={item[0]}>{item[1]}</Option>
+                  ))}
+                </Select>
+              </div>
               <div className={s.postSettingSection}>
                 <ClockCircleOutlined />
                 <span>发布时间</span>
@@ -443,7 +473,7 @@ const ArticleWrite: React.FC = () => {
         width={860}>
         <div
           className={s.previewBody}
-          dangerouslySetInnerHTML={{ __html: (vditor as any)?.getHTML?.() || vditor?.getValue() || '' }}
+          dangerouslySetInnerHTML={{ __html: getPreviewHTML() }}
         />
       </Modal>
       <Modal
