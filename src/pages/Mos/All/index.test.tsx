@@ -44,6 +44,7 @@ jest.mock('antd', () => ({
   Space: ({ children }: any) => <div>{children}</div>,
   message: {
     success: jest.fn(),
+    error: jest.fn(),
   },
 }));
 
@@ -119,6 +120,8 @@ jest.mock('@ant-design/pro-table', () => ({
   },
 }));
 
+const { message } = require('antd');
+
 describe('FileAll', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -183,6 +186,18 @@ describe('FileAll', () => {
     await waitFor(() => expect(screen.getByText('复制链接')).toBeInTheDocument());
     fireEvent.click(screen.getByText('复制链接'));
 
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(expect.stringContaining('/assets/avatar.png'));
+    await waitFor(() => expect(navigator.clipboard.writeText).toHaveBeenCalledWith(expect.stringContaining('/assets/avatar.png')));
+    await waitFor(() => expect(message.success).toHaveBeenCalledWith('复制成功'));
+  });
+
+  test('reports clipboard failures instead of claiming success', async () => {
+    (navigator.clipboard.writeText as jest.Mock).mockRejectedValueOnce(new Error('denied'));
+    render(<FileAll />);
+
+    await waitFor(() => expect(screen.getByText('复制链接')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('复制链接'));
+
+    await waitFor(() => expect(message.error).toHaveBeenCalledWith('复制失败，请手动复制链接'));
+    expect(message.success).not.toHaveBeenCalledWith('复制成功');
   });
 });

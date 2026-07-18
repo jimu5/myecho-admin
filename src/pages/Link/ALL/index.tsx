@@ -39,14 +39,15 @@ const LinkALL: React.FC = () => {
       valueType: 'option',
       render: (text, data, _, action) => (
         <Space size={"middle"}>
-          <a
+          <Button
             key="editable"
+            type="link"
             onClick={() => {
               action?.startEditable?.(data.id)
             }}
           >
             编辑
-          </a>
+          </Button>
           <Popconfirm
             title="确定删除?"
             onConfirm={() => {
@@ -56,7 +57,7 @@ const LinkALL: React.FC = () => {
               })
             }}
           >
-            <a>删除</a>
+            <Button type="link" danger>删除</Button>
           </Popconfirm>
         </Space>
       )
@@ -92,10 +93,10 @@ const LinkALL: React.FC = () => {
         editable={{
           type: 'single',
           editableKeys,
-          onSave: async (rowKey, data, row) => {
-            LinkAPI.put(data.id, data).then(
-              message.success("保存成功")
-            )
+          onSave: async (_rowKey, data) => {
+            await LinkAPI.put(data.id, data);
+            message.success("保存成功");
+            await runAsync();
           },
           onChange: setEditableKeys,
           actionRender: (row, config, defaultDom) => [defaultDom.save, defaultDom.cancel]
@@ -103,6 +104,7 @@ const LinkALL: React.FC = () => {
         recordCreatorProps={false}
         pagination={false}
         loading={loading}
+        scroll={{ x: 'max-content' }}
       ></EditableProTable>
       </div>
     </div>

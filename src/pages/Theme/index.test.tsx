@@ -1,11 +1,12 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 
 import Theme from './index';
 import { ThemeApi } from '@/utils/apis/theme';
 import { message } from 'antd';
 
 jest.mock('@/utils/apis/theme', () => ({
+  getThemeErrorMessage: (error: any) => error?.msg || error?.message || '未知错误',
   ThemeApi: {
     getAll: jest.fn(),
     upload: jest.fn(),
@@ -41,33 +42,40 @@ jest.mock('antd', () => {
   const message = {
     success: jest.fn(),
     error: jest.fn(),
+    warning: jest.fn(),
   };
 
   const Upload = {
-    Dragger: ({ customRequest, children }: any) => (
-      <div>
-        <button
-          onClick={() => customRequest({
-            file: new File(['zip'], 'theme.zip', { type: 'application/zip' }),
-            onSuccess: jest.fn(),
-            onError: jest.fn(),
-          })}
-        >
-          upload theme
-        </button>
-        {children}
-      </div>
-    ),
+    Dragger: ({ customRequest, disabled, children }: any) => {
+      const request = (file: File) => customRequest({
+        file,
+        onSuccess: jest.fn(),
+        onError: jest.fn(),
+        onProgress: jest.fn(),
+      });
+      const largeFile = new File(['zip'], 'large.zip', { type: 'application/zip' });
+      Object.defineProperty(largeFile, 'size', { value: 21 * 1024 * 1024 });
+      return (
+        <div>
+          <button disabled={disabled} onClick={() => request(new File(['zip'], 'theme.zip', { type: 'application/zip' }))}>
+            upload theme
+          </button>
+          <button disabled={disabled} onClick={() => request(largeFile)}>upload large theme</button>
+          <button disabled={disabled} onClick={() => request(new File(['text'], 'theme.txt'))}>upload text theme</button>
+          {children}
+        </div>
+      );
+    },
   };
 
   return {
-    Button: ({ children, icon, ...props }: any) => (
-      <button {...props}>
+    Button: ({ children, icon, loading, danger, type, ...props }: any) => (
+      <button type="button" {...props}>
         {icon}
         {children}
       </button>
     ),
-    Card: ({ children }: any) => <section>{children}</section>,
+    Card: ({ children, loading }: any) => <section data-loading={String(loading)}>{children}</section>,
     Col: ({ children }: any) => <div>{children}</div>,
     Row: ({ children }: any) => <div>{children}</div>,
     Space: ({ children }: any) => <span>{children}</span>,
@@ -81,6 +89,7 @@ jest.mock('antd', () => {
       </div>
     ),
     Tag: ({ children }: any) => <span>{children}</span>,
+    Progress: ({ percent }: any) => <div role="progressbar" aria-valuenow={percent} />,
     Tooltip: ({ children }: any) => <>{children}</>,
     Upload,
     Popconfirm: ({ children, onConfirm, disabled }: any) =>
@@ -172,6 +181,7 @@ const themes = [
     description: 'Built in theme',
     is_active: true,
     is_default: true,
+    is_bundled: false,
     preview: '',
     css: '',
     js: '',
@@ -186,10 +196,26 @@ const themes = [
     description: 'Clean theme',
     is_active: false,
     is_default: false,
+    is_bundled: false,
     preview: '',
     css: 'body{}',
     js: '',
     config: { primaryColor: '#1890ff' },
+  },
+  {
+    id: 3,
+    name: 'anime',
+    display_name: 'Anime Theme',
+    author: 'Myecho',
+    version: '1.0.0',
+    description: 'Bundled theme',
+    is_active: false,
+    is_default: false,
+    is_bundled: true,
+    preview: '',
+    css: '@import url("/static/css/presets/anime.css");',
+    js: '',
+    config: { bundled: true },
   },
 ];
 
@@ -218,7 +244,7 @@ describe('Theme page', () => {
 
     expect(ThemeApi.getAll).toHaveBeenCalled();
     expect(screen.getByText('主题总数')).toBeInTheDocument();
-    expect(screen.getByText('2套')).toBeInTheDocument();
+    expect(screen.getByText('3套')).toBeInTheDocument();
     expect(screen.getByText('当前主题')).toBeInTheDocument();
     expect(screen.getAllByText('Default Theme')[0]).toBeInTheDocument();
     expect(screen.getByText('ZIP')).toBeInTheDocument();
@@ -229,7 +255,7 @@ describe('Theme page', () => {
 
     fireEvent.click(screen.getByText('upload theme'));
 
-    await waitFor(() => expect(ThemeApi.upload).toHaveBeenCalledWith(expect.any(File)));
+    await waitFor(() => expect(ThemeApi.upload).toHaveBeenCalledWith(expect.any(File), expect.any(Function)));
     await waitFor(() => expect(message.success).toHaveBeenCalledWith('主题包上传成功'));
     await waitFor(() => expect(ThemeApi.getAll).toHaveBeenCalledTimes(2));
   });
@@ -240,8 +266,55 @@ describe('Theme page', () => {
     await renderTheme();
     fireEvent.click(screen.getByText('upload theme'));
 
-    await waitFor(() => expect(message.error).toHaveBeenCalledWith('主题包上传失败'));
+    await waitFor(() => expect(message.error).toHaveBeenCalledWith('主题包上传失败：bad zip'));
     expect(ThemeApi.getAll).toHaveBeenCalledTimes(1);
+  });
+
+  test('shows upload progress and installation phase', async () => {
+    let reportProgress: (percent: number) => void = () => undefined;
+    let finishUpload: () => void = () => undefined;
+    (ThemeApi.upload as jest.Mock).mockImplementation((_file, onProgress) => {
+      reportProgress = onProgress;
+      return new Promise<void>((resolve) => {
+        finishUpload = resolve;
+      });
+    });
+
+    await renderTheme();
+    fireEvent.click(screen.getByText('upload theme'));
+    await waitFor(() => expect(ThemeApi.upload).toHaveBeenCalled());
+
+    act(() => reportProgress(50));
+    expect(screen.getByText('正在上传主题包 50%')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '50');
+
+    act(() => reportProgress(100));
+    expect(screen.getByText('上传完成，正在校验并安装主题…')).toBeInTheDocument();
+    expect(screen.getByText('upload theme')).toBeDisabled();
+
+    await act(async () => finishUpload());
+    await waitFor(() => expect(message.success).toHaveBeenCalledWith('主题包上传成功'));
+  });
+
+  test('rejects invalid theme packages before upload', async () => {
+    await renderTheme();
+
+    fireEvent.click(screen.getByText('upload large theme'));
+    expect(message.error).toHaveBeenCalledWith('主题包不能超过 20 MB');
+    fireEvent.click(screen.getByText('upload text theme'));
+    expect(message.error).toHaveBeenCalledWith('请选择 ZIP 格式的主题包');
+    expect(ThemeApi.upload).not.toHaveBeenCalled();
+  });
+
+  test('treats upload timeout as an uncertain installation result', async () => {
+    (ThemeApi.upload as jest.Mock).mockRejectedValueOnce({ code: 'ECONNABORTED' });
+
+    await renderTheme();
+    fireEvent.click(screen.getByText('upload theme'));
+
+    await waitFor(() => expect(message.warning).toHaveBeenCalledWith('上传请求超时，主题可能仍在安装，请刷新确认后再重试'));
+    expect(ThemeApi.getAll).toHaveBeenCalledTimes(2);
+    expect(message.error).not.toHaveBeenCalledWith(expect.stringContaining('主题包上传失败'));
   });
 
   test('activates and deletes a non-active custom theme', async () => {
@@ -260,10 +333,21 @@ describe('Theme page', () => {
     await waitFor(() => expect(ThemeApi.getAll).toHaveBeenCalledTimes(3));
   });
 
+  test('keeps bundled themes previewable but immutable', async () => {
+    await renderTheme();
+
+    const bundledThemeRow = screen.getByTestId('theme-row-3');
+    expect(within(bundledThemeRow).getByText('应用')).toBeInTheDocument();
+    expect(within(bundledThemeRow).getByText('预览')).toBeInTheDocument();
+    expect(within(bundledThemeRow).queryByText('配置')).not.toBeInTheDocument();
+    expect(within(bundledThemeRow).queryByText('编辑')).not.toBeInTheDocument();
+    expect(within(bundledThemeRow).queryByText('删除')).not.toBeInTheDocument();
+  });
+
   test('opens create, config, and preview dialogs from toolbar and row actions', async () => {
     await renderTheme();
 
-    fireEvent.click(screen.getByText('创建主题'));
+    fireEvent.click(screen.getByText('创建轻量主题'));
     expect(screen.getByRole('dialog', { name: 'create-theme' })).toBeInTheDocument();
 
     const customThemeRow = screen.getByTestId('theme-row-2');
@@ -280,7 +364,6 @@ describe('Theme page', () => {
     fireEvent.click(screen.getByText('save edit 2'));
 
     await waitFor(() => expect(ThemeApi.update).toHaveBeenCalledWith(2, {
-      name: 'clean',
       display_name: 'Clean Theme Edited',
       author: 'Myecho',
       version: '1.1.0',
@@ -290,5 +373,19 @@ describe('Theme page', () => {
       js: '',
     }));
     expect(message.success).toHaveBeenCalledWith('保存成功');
+  });
+
+  test('keeps a successful write successful when list refresh fails', async () => {
+    (ThemeApi.getAll as jest.Mock)
+      .mockImplementationOnce(() => Promise.resolve(themes))
+      .mockRejectedValueOnce(new Error('refresh failed'));
+
+    await renderTheme();
+    fireEvent.click(screen.getByText('save edit 2'));
+
+    await waitFor(() => expect(ThemeApi.update).toHaveBeenCalled());
+    expect(message.success).toHaveBeenCalledWith('保存成功');
+    await waitFor(() => expect(message.warning).toHaveBeenCalledWith('操作已成功，但主题列表刷新失败，请手动刷新'));
+    expect(message.error).not.toHaveBeenCalledWith(expect.stringContaining('保存失败'));
   });
 });

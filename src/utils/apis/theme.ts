@@ -25,11 +25,14 @@ export interface themeModel extends baseReturn {
   js: string;
   is_default: boolean;
   is_active: boolean;
+  is_bundled: boolean;
   has_templates: boolean;
   asset_base_url: string;
   config: ThemeConfig;
   config_schema: ThemeConfigSchemaField[];
 }
+
+export const getThemeErrorMessage = (error: any) => error?.msg || error?.message || '未知错误';
 
 export class ThemeApi {
   static baseApiUrl = '/themes';
@@ -50,14 +53,19 @@ export class ThemeApi {
   }
 
   // 上传主题压缩包
-  static upload(file: File | Blob) {
+  static upload(file: File | Blob, onProgress?: (percent: number) => void) {
     const formData = new FormData();
     formData.append('file', file);
     return axios.post(`${ThemeApi.baseApiUrl}/upload`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
-      timeout: 30000,
+      timeout: 180000,
+      onUploadProgress: (event) => {
+        if (event.total && onProgress) {
+          onProgress(Math.round((event.loaded / event.total) * 100));
+        }
+      },
     });
   }
 

@@ -73,7 +73,7 @@ const CommentPage: React.FC = () => {
       render: (text, record) => (
         <Space direction="vertical" size={2}>
           <span>{text}</span>
-          <span style={{ color: '#86909c', fontSize: 12 }}>
+          <span className="admin-muted-text" style={{ fontSize: 12 }}>
             {record.author_name} · {record.author_email}
             {record.parent_id ? ` · 回复 #${record.parent_id}` : ''}
           </span>
@@ -85,6 +85,7 @@ const CommentPage: React.FC = () => {
       dataIndex: 'article_title',
       key: 'article_title',
       width: 220,
+      responsive: ['md'],
       render: (text, record) => record.article_id ? <a href={`/articles/${record.article_id}`} target="_blank" rel="noreferrer">{text || '-'}</a> : '-',
     },
     {
@@ -99,12 +100,14 @@ const CommentPage: React.FC = () => {
       dataIndex: 'author_ip',
       key: 'author_ip',
       width: 130,
+      responsive: ['md'],
     },
     {
       title: '提交时间',
       dataIndex: 'post_time',
       key: 'post_time',
       width: 160,
+      responsive: ['md'],
       render: (value: string) => value ? dayjs(value).format('YYYY-MM-DD HH:mm:ss') : '-',
     },
     {
@@ -113,12 +116,12 @@ const CommentPage: React.FC = () => {
       fixed: 'right',
       width: 180,
       render: (_, record) => (
-        <Space>
-          <a onClick={() => updateStatus([record.id], 2)}>通过</a>
-          <a onClick={() => updateStatus([record.id], 3)}>拒绝</a>
-          <a onClick={() => updateStatus([record.id], 4)}>垃圾</a>
+        <Space size={[0, 4]} wrap>
+          <Button type="link" size="small" onClick={() => updateStatus([record.id], 2)}>通过</Button>
+          <Button type="link" size="small" onClick={() => updateStatus([record.id], 3)}>拒绝</Button>
+          <Button type="link" size="small" onClick={() => updateStatus([record.id], 4)}>垃圾</Button>
           <Popconfirm title="确认删除?" onConfirm={() => CommentApi.delete(record.id).then(() => refresh())}>
-            <a>删除</a>
+            <Button type="link" size="small" danger>删除</Button>
           </Popconfirm>
         </Space>
       ),

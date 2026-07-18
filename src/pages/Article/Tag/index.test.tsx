@@ -29,6 +29,9 @@ jest.mock('@ant-design/icons', () => ({
 }));
 
 jest.mock('antd', () => ({
+  Button: ({ children, onClick }: any) => (
+    <button type="button" onClick={onClick}>{children}</button>
+  ),
   Tag: ({ children, onClick, closeIcon }: any) => (
     <span onClick={onClick}>
       {children}
@@ -71,7 +74,7 @@ describe('TagIndex', () => {
   test('creates a tag from inline input', async () => {
     render(<TagIndex />);
 
-    fireEvent.click(screen.getByText('添加新标签'));
+    fireEvent.click(screen.getByRole('button', { name: /添加新标签/ }));
     fireEvent.change(screen.getByLabelText('tag-input'), { target: { value: 'typescript' } });
     fireEvent.keyDown(screen.getByLabelText('tag-input'), { key: 'Enter' });
 

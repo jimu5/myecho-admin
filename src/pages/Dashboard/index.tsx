@@ -35,24 +35,28 @@ const Dashboard: React.FC = () => {
       </div>
       <Row gutter={[16, 16]}>
         <Col xs={24} md={8}>
-          <Card loading={loading}>
+          <Card className="dashboard-stat-card dashboard-stat-card--articles" loading={loading}>
             <Statistic title="文章总数" value={data?.articles?.total || 0} />
           </Card>
         </Col>
         <Col xs={24} md={8}>
-          <Card loading={loading}>
+          <Card className="dashboard-stat-card dashboard-stat-card--drafts" loading={loading}>
             <Statistic title="草稿" value={data?.drafts?.total || 0} />
           </Card>
         </Col>
         <Col xs={24} md={8}>
-          <Card loading={loading}>
+          <Card className="dashboard-stat-card dashboard-stat-card--comments" loading={loading}>
             <Statistic title="待审评论" value={data?.pendingComments?.total || 0} />
           </Card>
         </Col>
       </Row>
-      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+      <Row gutter={[16, 16]} className="dashboard-feed-grid">
         <Col xs={24} lg={12}>
-          <Card title="最近文章" loading={loading}>
+          <Card
+            className="dashboard-feed-card"
+            title="最近文章"
+            extra={<AdminNavLink to="article/all">查看全部</AdminNavLink>}
+            loading={loading}>
             <List
               dataSource={recentArticles}
               locale={{
@@ -77,7 +81,11 @@ const Dashboard: React.FC = () => {
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card title="待审评论" loading={loading}>
+          <Card
+            className="dashboard-feed-card"
+            title="待审评论"
+            extra={<AdminNavLink to="comments">进入审核</AdminNavLink>}
+            loading={loading}>
             <List
               dataSource={recentComments}
               locale={{

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tag, Input, notification, Popconfirm } from 'antd';
+import { Button, Tag, Input, notification, Popconfirm } from 'antd';
 import { PlusOutlined, CloseOutlined } from '@ant-design/icons';
 import { useRequest, useSafeState } from 'ahooks';
 
@@ -73,9 +73,9 @@ const TagIndex: React.FC = () => {
         />
       )}
       {!inputVisible && (
-        <Tag className="site-tag-plus" onClick={showInput}>
+        <Button type="text" className="site-tag-plus" onClick={showInput}>
           <PlusOutlined /> 添加新标签
-        </Tag>
+        </Button>
       )}
       </div>
     </div>

@@ -8,7 +8,6 @@ import { CategoryApi, category } from '@/utils/apis/category';
 import { TagApi, tag as tagModel } from '@/utils/apis/tag';
 import AdminNavLink from '@/routers/AdminNavlink';
 
-const { RangePicker } = DatePicker;
 const { Option } = Select;
 
 type ArticleTableState = {
@@ -112,18 +111,21 @@ const All: React.FC = () => {
       dataIndex: 'type',
       key: 'type',
       width: 90,
+      responsive: ['md'],
       render: (value: number) => <Tag>{articleTypes.get(value) || '文章'}</Tag>,
     },
     {
       title: '分类',
       dataIndex: 'category',
       key: 'category',
+      responsive: ['md'],
       render: (_, record) => <span>{record.category?.name || '-'}</span>,
     },
     {
       title: '标签',
       dataIndex: 'tags',
       key: 'tags',
+      responsive: ['md'],
       render: (_, record) => (
         <Space size={[0, 4]} wrap>
           {record.tags?.map((item) => <Tag key={item.uid}>{item.name}</Tag>)}
@@ -135,6 +137,7 @@ const All: React.FC = () => {
       dataIndex: 'post_time',
       width: 160,
       key: 'post_time',
+      responsive: ['md'],
       render: (text: string) => <>{dayjs(text).format('YYYY-MM-DD HH:mm:ss')}</>,
     },
     {
@@ -142,12 +145,14 @@ const All: React.FC = () => {
       dataIndex: 'read_count',
       key: 'read_count',
       width: 80,
+      responsive: ['md'],
     },
     {
       title: '评论',
       dataIndex: 'comment_count',
       key: 'comment_count',
       width: 80,
+      responsive: ['md'],
     },
     {
       title: '状态',
@@ -164,9 +169,9 @@ const All: React.FC = () => {
         <Space size="middle">
           <AdminNavLink to={`article/write/${record.id}`}>编辑</AdminNavLink>
           {canPreviewArticle(record.status) ? (
-            <a href={articlePreviewPath(record)} target="_blank" rel="noreferrer">预览</a>
+            <a className="admin-table-action" href={articlePreviewPath(record)} target="_blank" rel="noreferrer">预览</a>
           ) : (
-            <span style={{ color: '#86909c' }}>未发布</span>
+            <span className="admin-muted-text">未发布</span>
           )}
           <Popconfirm
             title="确认删除?"
@@ -178,7 +183,7 @@ const All: React.FC = () => {
             }}
             okText="确认"
             cancelText="取消">
-            <a>删除</a>
+            <Button type="link" size="small" danger>删除</Button>
           </Popconfirm>
         </Space>
       ),
@@ -246,11 +251,26 @@ const All: React.FC = () => {
             <Option value={item.uid} key={item.uid}>{item.name}</Option>
           ))}
         </Select>
-        <RangePicker
-          onChange={(_, dateStrings) => applyFilters({
+        <DatePicker
+          aria-label="开始日期"
+          placeholder="开始日期"
+          format="YYYY-MM-DD"
+          value={filters.date_from ? dayjs(filters.date_from) : null}
+          maxDate={filters.date_to ? dayjs(filters.date_to) : undefined}
+          onChange={(_, dateString) => applyFilters({
             ...filters,
-            date_from: dateStrings[0] || undefined,
-            date_to: dateStrings[1] || undefined,
+            date_from: typeof dateString === 'string' && dateString ? dateString : undefined,
+          })}
+        />
+        <DatePicker
+          aria-label="结束日期"
+          placeholder="结束日期"
+          format="YYYY-MM-DD"
+          value={filters.date_to ? dayjs(filters.date_to) : null}
+          minDate={filters.date_from ? dayjs(filters.date_from) : undefined}
+          onChange={(_, dateString) => applyFilters({
+            ...filters,
+            date_to: typeof dateString === 'string' && dateString ? dateString : undefined,
           })}
         />
         <Button onClick={resetFilters}>重置</Button>

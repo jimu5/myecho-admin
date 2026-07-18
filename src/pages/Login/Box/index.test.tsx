@@ -29,10 +29,11 @@ describe('LoginBox', () => {
     (UserApi.login as jest.Mock).mockResolvedValue({ token: 'abc', nick_name: 'Admin', permission_type: 0 });
 
     render(<LoginBox />);
-    fireEvent.change(screen.getByPlaceholderText('用户名或邮箱'), { target: { value: 'admin' } });
-    fireEvent.change(screen.getByPlaceholderText('密码'), { target: { value: 'secret' } });
+    expect(screen.getByText('Myecho')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('账号'), { target: { value: 'admin' } });
+    fireEvent.change(screen.getByLabelText('密码'), { target: { value: 'secret' } });
     await act(async () => {
-      fireEvent.click(screen.getAllByText('登录')[1]);
+      fireEvent.click(screen.getByRole('button', { name: '登录' }));
     });
 
     expect(UserApi.login).toHaveBeenCalledWith({ email: '', name: 'admin', password: 'secret' });
@@ -44,10 +45,10 @@ describe('LoginBox', () => {
     (UserApi.login as jest.Mock).mockResolvedValue({ token: 'email-token', permission_type: 0 });
 
     render(<LoginBox />);
-    fireEvent.change(screen.getByPlaceholderText('用户名或邮箱'), { target: { value: 'admin@example.com' } });
-    fireEvent.change(screen.getByPlaceholderText('密码'), { target: { value: 'secret' } });
+    fireEvent.change(screen.getByLabelText('账号'), { target: { value: 'admin@example.com' } });
+    fireEvent.change(screen.getByLabelText('密码'), { target: { value: 'secret' } });
     await act(async () => {
-      fireEvent.click(screen.getAllByText('登录')[1]);
+      fireEvent.click(screen.getByRole('button', { name: '登录' }));
     });
 
     expect(UserApi.login).toHaveBeenCalledWith({

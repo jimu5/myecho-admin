@@ -115,7 +115,12 @@ const StaticPage: React.FC = () => {
           <p className="admin-page-subtitle">上传、预览和管理完整目录结构的静态页面。</p>
         </div>
         <Tooltip title="刷新">
-          <Button icon={<ReloadOutlined />} onClick={() => runAsync()} />
+          <Button
+            className="static-page__refresh"
+            aria-label="刷新静态页面"
+            icon={<ReloadOutlined />}
+            onClick={() => runAsync()}
+          />
         </Tooltip>
       </div>
 
@@ -147,14 +152,16 @@ const StaticPage: React.FC = () => {
         </Upload.Dragger>
       </Card>
 
-      <Table
-        rowKey="name"
-        columns={columns}
-        dataSource={dataSource}
-        loading={loading}
-        pagination={false}
-        scroll={{ x: 'max-content' }}
-      />
+      <div className="admin-table-card static-page__table">
+        <Table
+          rowKey="name"
+          columns={columns}
+          dataSource={dataSource}
+          loading={loading}
+          pagination={false}
+          scroll={{ x: 'max-content' }}
+        />
+      </div>
     </div>
   );
 };

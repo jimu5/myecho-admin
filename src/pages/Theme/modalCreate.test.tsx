@@ -8,6 +8,7 @@ const mockValidateFields = jest.fn();
 const mockResetFields = jest.fn();
 
 jest.mock('@/utils/apis/theme', () => ({
+  getThemeErrorMessage: (error: any) => error?.msg || error?.message || '未知错误',
   ThemeApi: {
     create: jest.fn(),
   },
@@ -43,6 +44,7 @@ jest.mock('antd', () => ({
   message: {
     success: jest.fn(),
     error: jest.fn(),
+    warning: jest.fn(),
   },
 }));
 

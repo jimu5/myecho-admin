@@ -1,17 +1,18 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, Form, Input, InputNumber, Switch, message, Select } from 'antd';
-import { ThemeApi } from '@/utils/apis/theme';
+import { getThemeErrorMessage, ThemeApi } from '@/utils/apis/theme';
 import type { ThemeConfigSchemaField, themeModel } from '@/utils/apis/theme';
 
 interface ModalConfigProps {
   open: boolean;
   setOpen: (open: boolean) => void;
   theme: themeModel | null;
-  okCallBack: () => void;
+  okCallBack: () => void | Promise<void>;
 }
 
 const ModalConfig: React.FC<ModalConfigProps> = ({ open, setOpen, theme, okCallBack }) => {
   const [form] = Form.useForm();
+  const [submitting, setSubmitting] = useState(false);
   const schema = theme?.config_schema || [];
   const hasSchema = schema.length > 0;
 
@@ -30,10 +31,12 @@ const ModalConfig: React.FC<ModalConfigProps> = ({ open, setOpen, theme, okCallB
     }
   }, [open, theme, form, hasSchema]);
 
-  const handleOk = () => {
+  const handleOk = async () => {
     if (!theme) return;
-    
-    form.validateFields().then(values => {
+
+    setSubmitting(true);
+    try {
+      const values = await form.validateFields();
       let payload = values;
       if (!hasSchema) {
         try {
@@ -42,15 +45,30 @@ const ModalConfig: React.FC<ModalConfigProps> = ({ open, setOpen, theme, okCallB
           message.error('JSON 配置格式有误');
           return;
         }
+        if (!payload || Array.isArray(payload) || typeof payload !== 'object') {
+          message.error('JSON 配置必须是对象');
+          return;
+        }
       }
-      ThemeApi.updateConfig(theme.id, payload).then(() => {
-        message.success('主题配置更新成功');
-        setOpen(false);
-        okCallBack();
-      }).catch(error => {
-        message.error('主题配置更新失败：' + error.message);
-      });
-    });
+      if (hasSchema) {
+        await ThemeApi.updateConfig(theme.id, payload);
+      } else {
+        await ThemeApi.update(theme.id, { config: payload });
+      }
+      message.success('主题配置更新成功');
+      setOpen(false);
+      try {
+        await okCallBack();
+      } catch (error) {
+        message.warning('配置已保存，但主题列表刷新失败，请手动刷新');
+      }
+    } catch (error: any) {
+      if (!error?.errorFields) {
+        message.error('主题配置更新失败：' + getThemeErrorMessage(error));
+      }
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
@@ -65,6 +83,7 @@ const ModalConfig: React.FC<ModalConfigProps> = ({ open, setOpen, theme, okCallB
       open={open}
       onOk={handleOk}
       onCancel={handleCancel}
+      confirmLoading={submitting}
       width={600}
     >
       <Form
@@ -99,7 +118,7 @@ const ModalConfig: React.FC<ModalConfigProps> = ({ open, setOpen, theme, okCallB
 function renderSchemaField(field: ThemeConfigSchemaField) {
   switch (field.type) {
     case 'boolean':
-      return <Switch />;
+      return <Switch className="theme-config-switch" />;
     case 'number':
       return <InputNumber style={{ width: '100%' }} />;
     case 'textarea':

@@ -99,7 +99,8 @@ describe('Setting page', () => {
     await waitFor(() => expect(screen.getByTestId('setting-count')).toHaveTextContent('1'));
     fireEvent.click(screen.getByText('save setting'));
 
-    expect(SettingApi.updateValue).toHaveBeenCalledWith('SiteTitle', 'Myecho', 'site');
+    await waitFor(() => expect(SettingApi.updateValue).toHaveBeenCalledWith('SiteTitle', 'Myecho', 'site'));
+    await waitFor(() => expect(SettingApi.getAll).toHaveBeenCalledTimes(2));
   });
 
   test('deletes a setting and refreshes list', async () => {

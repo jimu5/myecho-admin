@@ -40,14 +40,19 @@ const FileAll: React.FC = () => {
       dataIndex: 'link',
       readonly: true,
       width: 130,
+      responsive: ['md'],
       render: (_, record) =>
         <Space>
           <a href={record.url} target="_blank" rel="noreferrer">打开</a>
           <Button
             size="small"
-            onClick={() => {
-              navigator.clipboard.writeText(`${document.location.protocol}//${document.location.hostname}:${document.location.port}${record.url}`);
-              message.success("复制成功")
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(new URL(record.url, window.location.origin).href);
+                message.success("复制成功");
+              } catch {
+                message.error("复制失败，请手动复制链接");
+              }
             }}
           >复制链接</Button>
         </Space>
@@ -57,6 +62,7 @@ const FileAll: React.FC = () => {
       dataIndex: 'url',
       readonly: true,
       width: 200,
+      responsive: ['md'],
       render: (_, record) => <span>{isAssetTypeAnImage(record.extension_name) ?
         <Image src={record.url}></Image> :
         <a href={record.url}><PaperClipOutlined />{record.full_name}</a>}</span>
@@ -66,6 +72,7 @@ const FileAll: React.FC = () => {
       dataIndex: 'created_at',
       width: 105,
       readonly: true,
+      responsive: ['md'],
       render: (_, record) => <>{dayjs(record.created_at).format('YYYY-MM-DD HH:mm:ss')}</>
     },
     {
@@ -79,16 +86,18 @@ const FileAll: React.FC = () => {
       width: 110,
       valueType: 'option',
       render: (text, record, _, action) => (
-        <Space size="middle">
+        <Space size={[0, 4]} wrap>
 
-          <a
+          <Button
+            type="link"
+            size="small"
             key="editable"
             onClick={() => {
               action?.startEditable?.(record.id)
             }}
           >
             编辑
-          </a>
+          </Button>
           <Popconfirm
             title="确认删除?"
             onConfirm={() => {
@@ -99,7 +108,7 @@ const FileAll: React.FC = () => {
             }}
             okText="确认"
             cancelText="取消">
-            <a>删除</a>
+            <Button type="link" size="small" danger>删除</Button>
           </Popconfirm>
         </Space>
       ),
@@ -125,13 +134,10 @@ const FileAll: React.FC = () => {
         editable={{
           type: 'single',
           editableKeys,
-          onSave: async (rowKey, data, row) => {
-            MosAPI.Update(data).then(
-              () => {
-                message.success("保存成功");
-                refresh()
-              }
-            )
+          onSave: async (_rowKey, data) => {
+            await MosAPI.Update(data);
+            message.success("保存成功");
+            refresh();
           },
           onChange: setEditableKeys,
           actionRender: (row, config, defaultDom) => [defaultDom.save, defaultDom.cancel]

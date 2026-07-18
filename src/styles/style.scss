@@ -15,10 +15,10 @@
   width: $btnWidth;
   bottom: 0;
   border-radius: 999px;
-  color: #0b5d55;
+  color: var(--admin-primary-strong);
   cursor: pointer;
-  background-color: rgba(15, 118, 110, 0.1);
-  border: 1px solid rgba(15, 118, 110, 0.22);
+  background-color: var(--admin-primary-soft);
+  border: 1px solid var(--admin-primary);
   @extend .hover;
 }
 

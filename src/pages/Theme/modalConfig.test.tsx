@@ -4,14 +4,17 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import ModalConfig from './modalConfig';
 import { ThemeApi } from '@/utils/apis/theme';
 import type { themeModel } from '@/utils/apis/theme';
+import { message } from 'antd';
 
 const mockValidateFields = jest.fn();
 const mockSetFieldsValue = jest.fn();
 const mockResetFields = jest.fn();
 
 jest.mock('@/utils/apis/theme', () => ({
+  getThemeErrorMessage: (error: any) => error?.msg || error?.message || '未知错误',
   ThemeApi: {
     updateConfig: jest.fn(),
+    update: jest.fn(),
   },
 }), { virtual: true });
 
@@ -50,6 +53,7 @@ jest.mock('antd', () => {
 	    message: {
 	      success: jest.fn(),
 	      error: jest.fn(),
+	      warning: jest.fn(),
 	    },
   };
 });
@@ -66,6 +70,7 @@ describe('ModalConfig', () => {
     jest.clearAllMocks();
     mockValidateFields.mockResolvedValue({ primaryColor: '#222' });
     (ThemeApi.updateConfig as jest.Mock).mockResolvedValue({});
+    (ThemeApi.update as jest.Mock).mockResolvedValue({});
   });
 
   test('loads theme config and saves updated config', async () => {
@@ -90,5 +95,31 @@ describe('ModalConfig', () => {
 
     expect(setOpen).toHaveBeenCalledWith(false);
     expect(ThemeApi.updateConfig).not.toHaveBeenCalled();
+  });
+
+  test('replaces schemaless JSON config so removed keys stay removed', async () => {
+    const schemalessTheme = {
+      ...theme,
+      config: { keep: true, remove: true },
+      config_schema: [],
+    } as themeModel;
+    mockValidateFields.mockResolvedValueOnce({ __json: '{"keep":true}' });
+
+    render(<ModalConfig open={true} setOpen={jest.fn()} theme={schemalessTheme} okCallBack={jest.fn()} />);
+    fireEvent.click(screen.getByText('ok'));
+
+    await waitFor(() => expect(ThemeApi.update).toHaveBeenCalledWith(9, { config: { keep: true } }));
+    expect(ThemeApi.updateConfig).not.toHaveBeenCalled();
+  });
+
+  test('rejects schemaless JSON values that are not objects', async () => {
+    const schemalessTheme = { ...theme, config_schema: [] } as themeModel;
+    mockValidateFields.mockResolvedValueOnce({ __json: '[]' });
+
+    render(<ModalConfig open={true} setOpen={jest.fn()} theme={schemalessTheme} okCallBack={jest.fn()} />);
+    fireEvent.click(screen.getByText('ok'));
+
+    await waitFor(() => expect(message.error).toHaveBeenCalledWith('JSON 配置必须是对象'));
+    expect(ThemeApi.update).not.toHaveBeenCalled();
   });
 });

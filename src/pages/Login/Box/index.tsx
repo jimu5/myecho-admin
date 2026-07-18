@@ -49,8 +49,18 @@ const LoginBox: React.FC = () => {
   return (
     <form className={s.loginBox} onSubmit={handleLogin}>
       <div className={s.loginWrapper}>
-        <h2>登录</h2>
+        <div className={s.loginBrand}>
+          <span className={s.loginBrandMark} aria-hidden="true" />
+          <span>
+            <strong>Myecho</strong>
+            <small>Blog Admin</small>
+          </span>
+        </div>
+        <h2>欢迎回来</h2>
+        <p className={s.loginLead}>登录内容工作台，继续管理文章、评论与站点资产。</p>
+        <label htmlFor="admin-account">账号</label>
         <input
+          id="admin-account"
           type="text"
           placeholder="用户名或邮箱"
           autoComplete="username"
@@ -58,7 +68,9 @@ const LoginBox: React.FC = () => {
           value={nameOrEmail}
           onChange={(e) => setNameOrEmail(e.target.value)}
         />
+        <label htmlFor="admin-password">密码</label>
         <input
+          id="admin-password"
           type="password"
           placeholder="密码"
           autoComplete="current-password"
@@ -67,10 +79,11 @@ const LoginBox: React.FC = () => {
           onChange={(e) => setPassword(e.target.value)}
         />
         {errorMsg && <p className={s.loginError} role="alert">{errorMsg}</p>}
+        <button className={s.loginBtn} type="submit" disabled={loading} aria-busy={loading}>
+          {loading ? '登录中' : '登录'}
+        </button>
+        <p className={s.loginHint}>仅管理员账号可访问后台</p>
       </div>
-      <button className={s.loginBtn} type="submit" disabled={loading}>
-        {loading ? '登录中' : '登录'}
-      </button>
     </form>
   );
 };

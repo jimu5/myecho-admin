@@ -65,20 +65,26 @@ describe('ThemeApi', () => {
 
   test('uploads theme zip as multipart form data', () => {
     const file = new Blob(['zip']);
+    const onProgress = jest.fn();
 
-    ThemeApi.upload(file);
+    ThemeApi.upload(file, onProgress);
 
     expect(mockedAxios.post).toHaveBeenCalledWith('/themes/upload', expect.any(FormData), {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
-      timeout: 30000,
+      timeout: 180000,
+      onUploadProgress: expect.any(Function),
     });
     const formData = mockedAxios.post.mock.calls[0][1] as FormData;
     const uploadedFile = formData.get('file') as File;
     expect(uploadedFile).toBeInstanceOf(File);
     expect(uploadedFile.size).toBe(file.size);
     expect(uploadedFile.name).toBe('blob');
+
+    const config = mockedAxios.post.mock.calls[0][2] as any;
+    config.onUploadProgress({ loaded: 1, total: 2 });
+    expect(onProgress).toHaveBeenCalledWith(50);
   });
 });
 

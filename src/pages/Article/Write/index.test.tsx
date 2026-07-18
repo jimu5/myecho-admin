@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 const mockNavigate = jest.fn();
 const mockInsertValue = jest.fn();
+const mockSetTheme = jest.fn();
 let mockParams: { id?: string } = {};
 
 jest.mock('react-router-dom', () => ({
@@ -20,22 +21,6 @@ jest.mock('ahooks', () => ({
     post_time: undefined,
     ...options.defaultValue,
   }),
-  useRequest: (request: any) => {
-    const React = jest.requireActual('react');
-    const requestRef = React.useRef(request);
-    const loadedRef = React.useRef(false);
-    requestRef.current = request;
-    React.useEffect(() => {
-      if (!loadedRef.current) {
-        loadedRef.current = true;
-        requestRef.current();
-      }
-    }, []);
-    return {
-      loading: false,
-      runAsync: React.useCallback(() => requestRef.current(), []),
-    };
-  },
 }));
 
 jest.mock('vditor', () => {
@@ -44,6 +29,7 @@ jest.mock('vditor', () => {
     this.getValue = jest.fn(() => 'Editor content');
     this.getHTML = jest.fn(() => '<p>Editor content</p>');
     this.insertValue = mockInsertValue;
+    this.setTheme = mockSetTheme;
     this.destroy = jest.fn();
     Promise.resolve().then(() => options?.after?.());
   }
@@ -53,6 +39,7 @@ jest.mock('vditor', () => {
   MockVditor.prototype.getValue = jest.fn(() => 'Editor content');
   MockVditor.prototype.getHTML = jest.fn(() => '<p>Editor content</p>');
   MockVditor.prototype.insertValue = mockInsertValue;
+  MockVditor.prototype.setTheme = mockSetTheme;
   MockVditor.prototype.destroy = jest.fn();
 
   return MockVditor;
@@ -122,7 +109,15 @@ jest.mock('@ant-design/icons', () => ({
 jest.mock('antd', () => {
   const Layout: any = ({ children }: any) => <div>{children}</div>;
   Layout.Content = ({ children }: any) => <main>{children}</main>;
-  Layout.Sider = ({ children }: any) => <aside>{children}</aside>;
+  Layout.Sider = ({ children, breakpoint, collapsedWidth }: any) => (
+    <aside
+      data-testid="write-sider"
+      data-breakpoint={breakpoint}
+      data-collapsed-width={collapsedWidth}
+    >
+      {children}
+    </aside>
+  );
 
   const Select: any = ({ mode, onChange, value, children, 'aria-label': ariaLabel }: any) => (
     <div>
@@ -141,6 +136,15 @@ jest.mock('antd', () => {
   const Button = ({ children, onClick, disabled }: any) => <button disabled={disabled} onClick={onClick}>{children}</button>;
   const Modal = ({ children, open }: any) => open ? <div>{children}</div> : null;
   const Input: any = ({ value, onChange }: any) => <input aria-label="media keyword" value={value} onChange={onChange} />;
+  Input.TextArea = ({ id, placeholder, value, maxLength, onChange }: any) => (
+    <textarea
+      id={id}
+      placeholder={placeholder}
+      value={value}
+      maxLength={maxLength}
+      onChange={onChange}
+    />
+  );
   Input.Search = ({ value, onChange, onSearch, placeholder }: any) => (
     <div>
       <input aria-label={placeholder} value={value} onChange={onChange} />
@@ -188,9 +192,12 @@ jest.mock('antd', () => {
     Input,
     List,
     Image: ({ src }: any) => <img src={src} alt="media" />,
-    Space: ({ children }: any) => <div>{children}</div>,
+    Space: ({ children, wrap }: any) => (
+      <div data-testid="write-actions" data-wrap={wrap ? 'true' : 'false'}>{children}</div>
+    ),
     notification: {
       success: jest.fn(),
+      error: jest.fn(),
     },
   };
 });
@@ -238,7 +245,7 @@ describe('ArticleWrite', () => {
     (ArticleApi.create as jest.Mock).mockResolvedValue({});
     (MosAPI.getList as jest.Mock).mockResolvedValue({
       total: 1,
-      data: [{ id: 1, full_name: 'cover.png', extension_name: 'png', url: '/mos/cover.png' }],
+      data: [{ id: 1, full_name: 'cover.png', extension_name: 'png', url: '/mos/cover.png', note: '站点封面' }],
     });
     (isAssetTypeAnImage as jest.Mock).mockImplementation((ext = '') => ['png', 'jpg', 'jpeg'].includes(String(ext).toLowerCase().replace(/^\./, '')));
     mockInsertValue.mockClear();
@@ -262,10 +269,18 @@ describe('ArticleWrite', () => {
     await waitFor(() => expect(ArticleApi.get_no_read).toHaveBeenCalledWith(42));
     await waitFor(() => expect(screen.getByPlaceholderText('添加标题')).toHaveValue('Old title'));
     expect(screen.getByPlaceholderText('自定义链接 slug')).toHaveValue('old-title');
+    expect(screen.getByPlaceholderText('用于文章列表和分享预览，留空则自动从正文生成')).toHaveValue('Old summary');
+    expect(screen.getByPlaceholderText('用于文章列表和分享预览，留空则自动从正文生成')).toHaveAttribute('maxlength', '255');
+    expect(screen.getByLabelText('列表和分享摘要预览')).toHaveTextContent('Old title');
+    expect(screen.getByLabelText('列表和分享摘要预览')).toHaveTextContent('Old summary');
     expect(screen.getByTestId('status-value')).toHaveTextContent('2');
     expect(screen.getByTestId('type-value')).toHaveTextContent('1');
     expect(screen.getByTestId('format-value')).toHaveTextContent('markdown');
     expect(screen.getByTestId('tag-value')).toHaveTextContent('tag-old');
+    expect(screen.getByTestId('write-actions')).toHaveAttribute('data-wrap', 'true');
+    expect(screen.getByTestId('write-sider')).not.toHaveAttribute('data-breakpoint');
+    expect(screen.getByTestId('write-sider')).not.toHaveAttribute('data-collapsed-width');
+    expect(mockSetTheme).toHaveBeenCalledWith('classic', 'light');
   });
 
   test('patches edited article with updated title, status, time, comments, tags and category', async () => {
@@ -276,6 +291,7 @@ describe('ArticleWrite', () => {
     await waitFor(() => expect(screen.getByPlaceholderText('添加标题')).toHaveValue('Old title'));
     fireEvent.change(screen.getByPlaceholderText('添加标题'), { target: { value: 'Updated title' } });
     fireEvent.change(screen.getByPlaceholderText('自定义链接 slug'), { target: { value: 'updated-title' } });
+    fireEvent.change(screen.getByPlaceholderText('用于文章列表和分享预览，留空则自动从正文生成'), { target: { value: 'Updated summary' } });
     fireEvent.change(screen.getByPlaceholderText('访问密码'), { target: { value: 'new secret' } });
     fireEvent.click(screen.getByText('select status'));
     fireEvent.click(screen.getByText('select type'));
@@ -291,6 +307,7 @@ describe('ArticleWrite', () => {
       expect.objectContaining({
         title: 'Updated title',
         slug: 'updated-title',
+        summary: 'Updated summary',
         type: 2,
         content_format: 'html',
         password: 'new secret',
@@ -311,6 +328,7 @@ describe('ArticleWrite', () => {
     await waitFor(() => expect(TagApi.getList).toHaveBeenCalled());
     fireEvent.change(screen.getByPlaceholderText('添加标题'), { target: { value: 'New article' } });
     fireEvent.change(screen.getByPlaceholderText('自定义链接 slug'), { target: { value: 'new-article' } });
+    fireEvent.change(screen.getByPlaceholderText('用于文章列表和分享预览，留空则自动从正文生成'), { target: { value: 'New summary' } });
     fireEvent.click(screen.getByText('select status'));
     fireEvent.click(screen.getByText('select type'));
     fireEvent.click(screen.getByText('select format'));
@@ -323,6 +341,7 @@ describe('ArticleWrite', () => {
     await waitFor(() => expect(ArticleApi.create).toHaveBeenCalledWith(expect.objectContaining({
       title: 'New article',
       slug: 'new-article',
+      summary: 'New summary',
       type: 2,
       content_format: 'html',
       status: 3,
@@ -382,14 +401,60 @@ describe('ArticleWrite', () => {
     })));
   });
 
-  test('previews html articles from raw editor content', async () => {
+  test('prevents duplicate article submissions while saving', async () => {
+    let resolveCreate: (value: unknown) => void = () => undefined;
+    (ArticleApi.create as jest.Mock).mockImplementationOnce(() => new Promise((resolve) => {
+      resolveCreate = resolve;
+    }));
+    await renderArticleWrite();
+
+    fireEvent.change(screen.getByPlaceholderText('添加标题'), { target: { value: 'Single submit' } });
+    const publish = screen.getByRole('button', { name: '立即发布' });
+    fireEvent.click(publish);
+    fireEvent.click(publish);
+
+    expect(ArticleApi.create).toHaveBeenCalledTimes(1);
+    expect(screen.getAllByRole('button', { name: '保存中...' })).toHaveLength(2);
+    screen.getAllByRole('button', { name: '保存中...' }).forEach((button) => {
+      expect(button).toBeDisabled();
+    });
+
+    await act(async () => resolveCreate({}));
+    expect(mockNavigate).toHaveBeenCalledWith('/admin/article/all');
+  });
+
+  test('previews html articles in an iframe without script permissions', async () => {
     await renderArticleWrite();
 
     fireEvent.click(screen.getByText('select format'));
     fireEvent.click(screen.getByText('预览'));
 
-    expect(screen.getByText('Editor content')).toBeInTheDocument();
-    expect(screen.queryByText('<p>Editor content</p>')).not.toBeInTheDocument();
+    const preview = screen.getByTitle('文章预览内容');
+    expect(preview).toHaveAttribute('sandbox', '');
+    expect(preview.getAttribute('srcdoc')).toContain('<body>Editor content</body>');
+    expect(preview.getAttribute('srcdoc')).not.toContain('allow-scripts');
+  });
+
+  test('blocks saving after an edit article load failure and retries successfully', async () => {
+    mockParams = { id: '42' };
+    (ArticleApi.get_no_read as jest.Mock)
+      .mockRejectedValueOnce(new Error('详情加载失败'))
+      .mockResolvedValueOnce(editArticle);
+
+    await renderArticleWrite();
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('文章加载失败：详情加载失败');
+    const publish = screen.getByRole('button', { name: '立即发布' });
+    expect(publish).toBeDisabled();
+    fireEvent.click(publish);
+    expect(ArticleApi.patch).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: '重试' }));
+
+    await waitFor(() => expect(ArticleApi.get_no_read).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(screen.getByPlaceholderText('添加标题')).toHaveValue('Old title'));
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '立即发布' })).toBeEnabled();
   });
 
   test('marks metadata edits as unsaved changes', async () => {
@@ -398,6 +463,8 @@ describe('ArticleWrite', () => {
     fireEvent.change(screen.getByPlaceholderText('添加标题'), { target: { value: 'Unsaved title' } });
 
     expect(screen.getByText(/有未发布改动/)).toBeInTheDocument();
+    expect(screen.getByText(/最近编辑/)).toBeInTheDocument();
+    expect(screen.queryByText(/已自动保存/)).not.toBeInTheDocument();
   });
 
   test('inserts selected media into editor', async () => {
@@ -408,7 +475,7 @@ describe('ArticleWrite', () => {
     await waitFor(() => expect(screen.getByText('cover.png')).toBeInTheDocument());
     fireEvent.click(screen.getByText('cover.png'));
 
-    expect(mockInsertValue).toHaveBeenCalledWith('![cover.png](/mos/cover.png)');
+    expect(mockInsertValue).toHaveBeenCalledWith('![站点封面](/mos/cover.png)');
   });
 
   test('loads media by keyword and pagination before inserting', async () => {

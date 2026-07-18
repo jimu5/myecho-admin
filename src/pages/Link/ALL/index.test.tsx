@@ -4,6 +4,8 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import LinkALL from './index';
 import { LinkAPI } from '@/utils/apis/link';
 
+const { message } = require('antd');
+
 jest.mock('@/utils/apis/link', () => ({
   LinkAPI: {
     getAll: jest.fn(),
@@ -67,11 +69,15 @@ jest.mock('antd', () => ({
 }));
 
 jest.mock('@ant-design/pro-table', () => ({
-  EditableProTable: ({ columns, value, editable, loading }: any) => {
+  EditableProTable: ({ columns, value, editable, loading, scroll }: any) => {
     const actionColumn = columns.find((column: any) => column.key === 'actions');
 
     return (
-      <div data-testid="link-table" data-loading={loading ? 'true' : 'false'}>
+      <div
+        data-testid="link-table"
+        data-loading={loading ? 'true' : 'false'}
+        data-scroll-x={scroll?.x}
+      >
         {value.map((row: any) => (
           <div key={row.id}>
             <span>{row.name}</span>
@@ -125,6 +131,7 @@ describe('LinkALL', () => {
     await waitFor(() =>
       expect(screen.getByTestId('link-table')).toHaveAttribute('data-loading', 'false')
     );
+    expect(screen.getByTestId('link-table')).toHaveAttribute('data-scroll-x', 'max-content');
   });
 
   test('opens create modal from create button', async () => {
@@ -164,6 +171,10 @@ describe('LinkALL', () => {
   });
 
   test('saves edited link through LinkAPI.put', async () => {
+    let resolveSave: (value: unknown) => void = () => undefined;
+    (LinkAPI.put as jest.Mock).mockImplementationOnce(() => new Promise((resolve) => {
+      resolveSave = resolve;
+    }));
     await renderLinkALL();
     await screen.findByText('Go');
 
@@ -175,5 +186,11 @@ describe('LinkALL', () => {
         name: 'Go edited',
       })
     );
+    expect(message.success).not.toHaveBeenCalled();
+
+    await act(async () => resolveSave({}));
+
+    expect(message.success).toHaveBeenCalledWith('保存成功');
+    await waitFor(() => expect(LinkAPI.getAll).toHaveBeenCalledTimes(2));
   });
 });

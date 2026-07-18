@@ -4,10 +4,9 @@ import './index.css';
 import App from './App';
 import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
-import { ConfigProvider } from 'antd';
 
 import { store } from './redux/store';
-import { myLocale } from './utils/config';
+import { AdminThemeProvider } from './theme';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -15,9 +14,9 @@ const root = ReactDOM.createRoot(
 root.render(
   <Provider store={store}>
     <BrowserRouter>
-      <ConfigProvider locale={myLocale}>
+      <AdminThemeProvider>
         <App />
-      </ConfigProvider>
+      </AdminThemeProvider>
     </BrowserRouter>
   </Provider>
 );

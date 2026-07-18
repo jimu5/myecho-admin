@@ -12,19 +12,15 @@ code {
     monospace;
 }
 
-/*统一table表格的尺寸*/
+/* Keep table columns stable while allowing long content to remain readable. */
 .ant-table {
+  width: 100%;
   table-layout: fixed;
 }
 
-.ant-table-tbody>tr>td {
-  max-width: 200px;
+.ant-table-tbody > tr > td {
   min-width: 70px;
-  border-bottom: 0;
-  /*text-align: center !important;*/
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  word-wrap: break-word;
-  word-break: break-all;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }

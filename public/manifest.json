@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Myecho Admin",
+  "name": "Myecho 博客后台管理",
   "icons": [
     {
       "src": "favicon.ico",
@@ -18,8 +18,10 @@
       "sizes": "512x512"
     }
   ],
-  "start_url": ".",
+  "id": "/admin/",
+  "start_url": "/admin/",
+  "scope": "/admin/",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#fffdfa",
+  "background_color": "#f6f8f4"
 }
