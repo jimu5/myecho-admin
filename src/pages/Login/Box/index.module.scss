@@ -23,6 +23,10 @@
   background: linear-gradient(90deg, #0f766e, #b88735, #c2553d);
 }
 
+.setupBox {
+  width: min(calc(100% - 32px), 620px);
+}
+
 .loginWrapper {
   position: relative;
   width: 100%;
@@ -46,7 +50,8 @@
     font-weight: 700;
   }
 
-  input {
+  input,
+  textarea {
     box-sizing: border-box;
     width: 100%;
     min-height: 44px;
@@ -60,11 +65,19 @@
     letter-spacing: 0;
     color: $textColor;
     box-shadow: none;
+    resize: vertical;
   }
-  input:focus {
+  input:focus,
+  textarea:focus {
     border-color: rgba(15, 118, 110, 0.44);
     box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
   }
+}
+
+.setupGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 16px;
 }
 
 .loginBrand {
@@ -151,10 +164,15 @@
 }
 
 @media (max-width: 480px) {
+  .setupGrid {
+    grid-template-columns: 1fr;
+  }
+
   .loginWrapper {
     padding: 34px 24px 28px;
 
-    input {
+    input,
+    textarea {
       font-size: 16px;
     }
   }

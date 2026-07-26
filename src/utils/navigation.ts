@@ -5,3 +5,7 @@ export const redirectToAdmin = () => {
 export const redirectToLogin = () => {
   window.location.href = '/admin/login';
 };
+
+export const redirectToSetup = () => {
+  window.location.href = '/admin/setup';
+};

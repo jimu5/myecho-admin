@@ -28,6 +28,8 @@ jest.mock('@/routers/AdminNavlink', () => ({ children }: any) => <a>{children}</
 jest.mock('@/utils/apis/article', () => ({
   articleStatus: new Map([
     [1, '公开'],
+    [2, '置顶'],
+    [3, '私密'],
     [4, '草稿'],
   ]),
   articleTypes: new Map([
@@ -35,6 +37,13 @@ jest.mock('@/utils/apis/article', () => ({
     [2, '页面'],
   ]),
   canPreviewArticle: jest.fn((status?: number) => status === 1 || status === 2),
+  getArticleStatusLabel: jest.fn((status?: number) => new Map([
+    [1, '公开'],
+    [2, '置顶'],
+    [3, '私密'],
+    [4, '草稿'],
+  ]).get(status ?? 0)),
+  isScheduledArticle: jest.fn(() => false),
   ArticleApi: {
     getAllList: jest.fn(),
     batch: jest.fn(),
@@ -81,12 +90,14 @@ jest.mock('antd', () => {
     Table: ({ dataSource = [], columns, rowSelection, pagination }: any) => {
       const row = dataSource[0] || articleRows[0];
       const actionColumn = columns.find((column: any) => column.key === 'action');
+      const statusColumn = columns.find((column: any) => column.key === 'status');
       return (
         <div>
           <span data-testid="total">{pagination.total}</span>
           <span>{row.title}</span>
           <button onClick={() => rowSelection.onChange([row.id])}>select article</button>
           <button onClick={() => pagination.onChange(2, 20)}>next page</button>
+          {statusColumn.render(row.status, row)}
           {actionColumn.render(null, row)}
         </div>
       );
@@ -164,5 +175,13 @@ describe('Article All', () => {
       page: 1,
       page_size: 10,
     })));
+  });
+
+  test('offers every article status as a filter option', async () => {
+    render(<All />);
+
+    expect(await screen.findByText('置顶')).toBeInTheDocument();
+    expect(screen.getByText('私密')).toBeInTheDocument();
+    expect(screen.getByText('草稿')).toBeInTheDocument();
   });
 });

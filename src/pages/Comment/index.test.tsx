@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 
 import CommentPage from './index';
 import { CommentApi } from '@/utils/apis/comment';
@@ -113,5 +113,24 @@ describe('CommentPage', () => {
       action: 'status',
       status: 2,
     }));
+  });
+
+  test('shows comments without requiring an author email', async () => {
+    (CommentApi.getList as jest.Mock).mockResolvedValue({
+      total: 1,
+      data: [{
+        ...commentRows[0],
+        author_name: 'Bob',
+        author_email: undefined,
+        parent_id: 0,
+        status: 3,
+      }],
+    });
+
+    render(<CommentPage />);
+
+    expect(await screen.findByText('Bob')).toBeInTheDocument();
+    expect(screen.queryByText(/alice@example.com/)).not.toBeInTheDocument();
+    expect(within(screen.getByTestId('column-status')).getByText('已拒绝')).toBeInTheDocument();
   });
 });

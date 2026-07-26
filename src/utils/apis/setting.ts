@@ -18,7 +18,7 @@ export class SettingApi {
     static getAll() {
         return axios.get(SettingApi.baseApiUrl)
     }
-    static create(params: settingModel) {
+    static create(params: Pick<settingModel, 'key' | 'value' | 'type'> & Partial<Pick<settingModel, 'description'>>) {
         return axios.post(SettingApi.baseApiUrl, params)
     }
     static updateValue(key: string, value: string, description: string) {
@@ -26,5 +26,8 @@ export class SettingApi {
     }
     static delete(key: string) {
         return axios.delete(`${SettingApi.baseApiUrl}/${key}`)
+    }
+    static exportBackup(): Promise<Blob> {
+        return axios.get<any, Blob>('/export', { responseType: 'blob', timeout: 0 })
     }
 }

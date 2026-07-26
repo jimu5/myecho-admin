@@ -63,5 +63,19 @@ describe('SettingApi', () => {
 
     SettingApi.delete('SiteTitle');
     expect(mockedAxios.delete).toHaveBeenCalledWith('/settings/SiteTitle');
+
+    SettingApi.create({ key: 'SiteDescription', value: 'A blog', type: 'string', description: '站点描述' });
+    expect(mockedAxios.post).toHaveBeenCalledWith('/settings', {
+      key: 'SiteDescription',
+      value: 'A blog',
+      type: 'string',
+      description: '站点描述',
+    });
+
+    SettingApi.exportBackup();
+    expect(mockedAxios.get).toHaveBeenCalledWith('/export', {
+      responseType: 'blob',
+      timeout: 0,
+    });
   });
 });

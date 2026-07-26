@@ -13,7 +13,7 @@ export interface comment extends baseReturn {
   article_id: number;
   article_title: string;
   author_name: string;
-  author_email: string;
+  author_email?: string;
   author_ip: string;
   author_url: string;
   author_agent: string;

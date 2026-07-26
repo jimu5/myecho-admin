@@ -30,6 +30,26 @@ describe('UserApi', () => {
       password: 'secret',
     });
   });
+
+  test('uses setup endpoints', () => {
+    UserApi.setupStatus();
+    expect(mockedAxios.get).toHaveBeenCalledWith('/setup/status');
+
+    UserApi.setup({
+      name: 'admin',
+      email: 'admin@example.com',
+      password: 'password123',
+      site_title: 'Myecho',
+      site_description: 'A blog',
+    });
+    expect(mockedAxios.post).toHaveBeenCalledWith('/setup', {
+      name: 'admin',
+      email: 'admin@example.com',
+      password: 'password123',
+      site_title: 'Myecho',
+      site_description: 'A blog',
+    });
+  });
 });
 
 describe('ThemeApi', () => {

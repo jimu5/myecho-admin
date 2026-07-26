@@ -20,7 +20,20 @@ export const articleStatus = new Map([
     [6, '回收站']
 ])
 
-export const canPreviewArticle = (status?: number) => status === 1 || status === 2;
+export const articlePublishStatus = new Map([
+    [4, '草稿'],
+    [1, '公开'],
+    [2, '置顶'],
+])
+
+export const isScheduledArticle = (item?: { status?: number; post_time?: string }) =>
+    Boolean(item?.post_time && (item.status === 1 || item.status === 2) && new Date(item.post_time).getTime() > Date.now());
+
+export const getArticleStatusLabel = (status?: number, postTime?: string) =>
+    isScheduledArticle({ status, post_time: postTime }) ? '定时发布' : articleStatus.get(status || 0) || '未知';
+
+export const canPreviewArticle = (status?: number, postTime?: string) =>
+    (status === 1 || status === 2) && !isScheduledArticle({ status, post_time: postTime });
 
 export const articleTypes = new Map([
     [1, '文章'],

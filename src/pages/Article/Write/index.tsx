@@ -28,7 +28,7 @@ import {
 } from '@ant-design/icons';
 import 'vditor/dist/index.css';
 
-import { article, articleRequest, ArticleApi, articleStatus, articleTypes, articleContentFormats } from '@/utils/apis/article';
+import { article, articleRequest, ArticleApi, articleStatus, articlePublishStatus, articleTypes, articleContentFormats, isScheduledArticle } from '@/utils/apis/article';
 import { tag, TagApi } from '@/utils/apis/tag';
 import { category, CategoryApi } from '@/utils/apis/category';
 import { vditorUploadOptions } from '@/utils/vditorConfg';
@@ -309,6 +309,10 @@ const ArticleWrite: React.FC = () => {
     return () => window.removeEventListener('beforeunload', beforeUnload);
   }, [dirty]);
 
+  const currentStatus = getEditArticle()?.status || 1;
+  const scheduled = isScheduledArticle(getEditArticle());
+  const legacyStatus = !articlePublishStatus.has(currentStatus);
+
   return (
     <div className="admin-write-page">
       <div className="admin-page-header">
@@ -342,8 +346,8 @@ const ArticleWrite: React.FC = () => {
           className={s.postSubmit}
           disabled={saving || Boolean(article_id && (!articleDetail || articleLoading || articleLoadError))}
           aria-busy={saving}
-          onClick={() => void saveArticle()}>
-          {saving ? '保存中...' : '立即发布'}
+          onClick={() => void saveArticle({ status: currentStatus === 2 ? 2 : 1 })}>
+          {saving ? '保存中...' : scheduled ? '定时发布' : '立即发布'}
         </button>
       </div>
     <Layout className={s.writeLayout}>
@@ -434,9 +438,12 @@ const ArticleWrite: React.FC = () => {
                   onChange={(value) => {
                     setEditArticle({ status: value });
                   }}>
-                  {Array.from(articleStatus).map(item => (
+                  {Array.from(articlePublishStatus).map(item => (
                     <Option value={item[0]} key={item[0]}>{item[1]}</Option>
                   ))}
+                  {legacyStatus && (
+                    <Option value={currentStatus} disabled>{articleStatus.get(currentStatus)}（旧状态）</Option>
+                  )}
                 </Select>
               </div>
               <div
@@ -475,14 +482,12 @@ const ArticleWrite: React.FC = () => {
               </div>
               <div className={s.postSettingSection}>
                 <ClockCircleOutlined />
-                <span>发布时间</span>
+                <span>{scheduled ? '定时发布时间' : '发布时间'}</span>
                 <DatePicker
                   showTime
                   format="YYYY-MM-DDTHH:mm:ssZ"
                   locale={myLocale.DatePicker}
-                  value={dayjs(
-                    articleDetail?.post_time || articleEditCache.post_time
-                  )}
+                  value={getEditArticle()?.post_time ? dayjs(getEditArticle()?.post_time) : null}
                   onChange={(_, dateString) => {
                     setEditArticle({ post_time: dateString });
                   }}

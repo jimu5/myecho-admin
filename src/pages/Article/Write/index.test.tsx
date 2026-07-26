@@ -52,6 +52,12 @@ jest.mock('@/utils/apis/article', () => ({
     [3, '私密'],
     [4, '草稿'],
   ]),
+  articlePublishStatus: new Map([
+    [4, '草稿'],
+    [1, '公开'],
+    [2, '置顶'],
+  ]),
+  isScheduledArticle: jest.fn(() => false),
   articleTypes: new Map([
     [1, '文章'],
     [2, '页面'],
@@ -126,7 +132,7 @@ jest.mock('antd', () => {
       </span>
       <button
         type="button"
-        onClick={() => onChange(mode === 'multiple' ? ['tag-react', 'tag-ts'] : ariaLabel === '内容类型' ? 2 : ariaLabel === '内容格式' ? 'html' : 3)}>
+        onClick={() => onChange(mode === 'multiple' ? ['tag-react', 'tag-ts'] : ariaLabel === '内容类型' ? 2 : ariaLabel === '内容格式' ? 'html' : 2)}>
         {mode === 'multiple' ? 'select tags' : ariaLabel === '内容类型' ? 'select type' : ariaLabel === '内容格式' ? 'select format' : 'select status'}
       </button>
       {children}
@@ -311,7 +317,7 @@ describe('ArticleWrite', () => {
         type: 2,
         content_format: 'html',
         password: 'new secret',
-        status: 3,
+        status: 2,
         post_time: '2026-05-28T09:30:00+08:00',
         is_allow_comment: true,
         category_uid: 'cat-child',
@@ -344,7 +350,7 @@ describe('ArticleWrite', () => {
       summary: 'New summary',
       type: 2,
       content_format: 'html',
-      status: 3,
+      status: 2,
       post_time: '2026-05-28T09:30:00+08:00',
       is_allow_comment: true,
       category_uid: 'cat-child',
@@ -399,6 +405,15 @@ describe('ArticleWrite', () => {
       title: 'Draft article',
       status: 4,
     })));
+  });
+
+  test('offers only supported publish statuses for new articles', async () => {
+    await renderArticleWrite();
+
+    expect(screen.getByText('公开')).toBeInTheDocument();
+    expect(screen.getByText('置顶')).toBeInTheDocument();
+    expect(screen.getByText('草稿')).toBeInTheDocument();
+    expect(screen.queryByText(/私密/)).not.toBeInTheDocument();
   });
 
   test('prevents duplicate article submissions while saving', async () => {

@@ -74,7 +74,7 @@ const CommentPage: React.FC = () => {
         <Space direction="vertical" size={2}>
           <span>{text}</span>
           <span className="admin-muted-text" style={{ fontSize: 12 }}>
-            {record.author_name} · {record.author_email}
+            {record.author_name}{record.author_email ? ` · ${record.author_email}` : ''}
             {record.parent_id ? ` · 回复 #${record.parent_id}` : ''}
           </span>
         </Space>

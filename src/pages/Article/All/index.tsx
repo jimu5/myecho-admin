@@ -3,7 +3,7 @@ import { Button, DatePicker, Input, message, Popconfirm, Select, Space, Table, T
 import type { ColumnsType } from 'antd/lib/table';
 import dayjs from 'dayjs';
 
-import { ArticleApi, article, articleListParams, articleStatus, articleTypes, canPreviewArticle } from '@/utils/apis/article';
+import { ArticleApi, article, articleListParams, articleStatus, articleTypes, canPreviewArticle, getArticleStatusLabel, isScheduledArticle } from '@/utils/apis/article';
 import { CategoryApi, category } from '@/utils/apis/category';
 import { TagApi, tag as tagModel } from '@/utils/apis/tag';
 import AdminNavLink from '@/routers/AdminNavlink';
@@ -159,7 +159,11 @@ const All: React.FC = () => {
       dataIndex: 'status',
       key: 'status',
       width: 100,
-      render: (text: number) => <Tag color={text === 1 || text === 2 ? 'green' : text === 4 ? 'default' : 'orange'}>{articleStatus.get(text)}</Tag>,
+      render: (status: number, record) => (
+        <Tag color={isScheduledArticle(record) ? 'blue' : status === 1 || status === 2 ? 'green' : status === 4 ? 'default' : 'orange'}>
+          {getArticleStatusLabel(status, record.post_time)}
+        </Tag>
+      ),
     },
     {
       title: '操作',
@@ -168,7 +172,7 @@ const All: React.FC = () => {
       render: (_, record) => (
         <Space size="middle">
           <AdminNavLink to={`article/write/${record.id}`}>编辑</AdminNavLink>
-          {canPreviewArticle(record.status) ? (
+          {canPreviewArticle(record.status, record.post_time) ? (
             <a className="admin-table-action" href={articlePreviewPath(record)} target="_blank" rel="noreferrer">预览</a>
           ) : (
             <span className="admin-muted-text">未发布</span>

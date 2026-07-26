@@ -4,19 +4,13 @@ import { render, screen } from '@testing-library/react';
 import Dashboard from './index';
 
 jest.mock('@/utils/apis/article', () => ({
-  ArticleApi: {
-    getAllList: jest.fn(),
-  },
-  articleStatus: new Map([
-    [1, '已发布'],
-    [4, '草稿'],
-  ]),
   canPreviewArticle: (status: number) => status === 1,
+  getArticleStatusLabel: (status: number) => status === 4 ? '草稿' : '公开',
 }), { virtual: true });
 
-jest.mock('@/utils/apis/comment', () => ({
-  CommentApi: {
-    getList: jest.fn(),
+jest.mock('@/utils/apis/dashboard', () => ({
+  DashboardApi: {
+    get: jest.fn(),
   },
 }), { virtual: true });
 
@@ -24,18 +18,16 @@ jest.mock('ahooks', () => ({
   useRequest: () => ({
     loading: false,
     data: {
-      articles: {
-        total: 2,
-        data: [
-          { id: 1, title: 'Public Post', status: 1, post_time: '2026-06-01T10:00:00Z' },
-          { id: 2, title: 'Draft Post', status: 4, post_time: '2026-06-02T10:00:00Z' },
-        ],
-      },
-      drafts: { total: 1, data: [] },
-      pendingComments: {
-        total: 1,
-        data: [{ id: 9, author_name: 'Alice', article_title: 'Public Post', content: 'Nice article' }],
-      },
+      article_count: 2,
+      draft_count: 1,
+      pending_comment_count: 3,
+      recent_articles: [
+        { id: 1, title: 'Public Post', status: 1, post_time: '2026-06-01T10:00:00Z' },
+        { id: 2, title: 'Draft Post', status: 4, post_time: '2026-06-02T10:00:00Z' },
+      ],
+      popular_articles: [
+        { id: 3, title: 'Popular Post', status: 1, post_time: '2026-06-03T10:00:00Z', read_count: 99, comment_count: 5 },
+      ],
     },
   }),
 }));
@@ -89,15 +81,16 @@ jest.mock('@/routers/AdminNavlink', () => ({ children, to }: any) => (
 ), { virtual: true });
 
 describe('Dashboard', () => {
-  test('renders article and comment summary cards', () => {
+  test('renders dashboard counts, recent articles and popular articles', () => {
     render(<Dashboard />);
 
     expect(screen.getByText('文章总数')).toBeInTheDocument();
     expect(screen.getAllByText('草稿')).toHaveLength(2);
-    expect(screen.getAllByText('待审评论')).toHaveLength(2);
+    expect(screen.getByText('待审评论')).toBeInTheDocument();
+    expect(screen.getByText('3')).toBeInTheDocument();
     expect(screen.getByText('Public Post')).toBeInTheDocument();
     expect(screen.getByText('Draft Post')).toBeInTheDocument();
-    expect(screen.getByText('Alice 评论了 Public Post')).toBeInTheDocument();
-    expect(screen.getByText('Nice article')).toBeInTheDocument();
+    expect(screen.getByText('Popular Post')).toBeInTheDocument();
+    expect(screen.getByText('99 次阅读 · 5 条评论')).toBeInTheDocument();
   });
 });
