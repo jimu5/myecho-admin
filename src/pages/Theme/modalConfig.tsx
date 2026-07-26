@@ -32,13 +32,29 @@ const ModalConfig: React.FC<ModalConfigProps> = ({ open, setOpen, theme, okCallB
     }
   }, [open, theme, form, hasSchema]);
 
+  const syncSchemaToJSON = (changedValues: any, values: any) => {
+    if (!changedValues.config) return;
+    try {
+      const config = JSON.parse(values.editor?.json || '{}');
+      if (!config || Array.isArray(config) || typeof config !== 'object') return;
+      Object.assign(config, changedValues.config);
+      form.setFieldsValue({
+        editor: {
+          ...values.editor,
+          json: JSON.stringify(config, null, 2),
+        },
+      });
+    } catch (_) {
+      // Keep invalid JSON visible so validation can report it on save.
+    }
+  };
+
   const handleOk = async () => {
     if (!theme) return;
 
     setSubmitting(true);
     try {
       const values = await form.validateFields();
-      const schemaValues = values.config || {};
       const editor = values.editor || {};
       let payload;
       try {
@@ -51,7 +67,6 @@ const ModalConfig: React.FC<ModalConfigProps> = ({ open, setOpen, theme, okCallB
         message.error('JSON 配置必须是对象');
         return;
       }
-      if (hasSchema) Object.assign(payload, schemaValues);
       await ThemeApi.update(theme.id, {
         config: payload,
         css: editor.css || '',
@@ -88,7 +103,7 @@ const ModalConfig: React.FC<ModalConfigProps> = ({ open, setOpen, theme, okCallB
       confirmLoading={submitting}
       width={600}
     >
-      <Form form={form} layout="vertical">
+      <Form form={form} layout="vertical" onValuesChange={syncSchemaToJSON}>
         {hasSchema && schema.map((field) => (
           <Form.Item
             key={field.key}

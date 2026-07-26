@@ -159,7 +159,9 @@ const Theme: React.FC = () => {
       editable: false,
       responsive: ['md'],
       render: (_, record) => {
-        const preview = record.preview || builtInThemePreviews[record.name];
+        const preview = record.preview || (
+          record.is_default || record.is_bundled ? builtInThemePreviews[record.name] : ''
+        );
         return preview ? (
           <Image
             width={64}

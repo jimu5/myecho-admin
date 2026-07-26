@@ -9,6 +9,7 @@ import { message } from 'antd';
 const mockValidateFields = jest.fn();
 const mockSetFieldsValue = jest.fn();
 const mockResetFields = jest.fn();
+let mockOnValuesChange: ((changedValues: any, values: any) => void) | undefined;
 
 jest.mock('@/utils/apis/theme', () => ({
   getThemeErrorMessage: (error: any) => error?.msg || error?.message || '未知错误',
@@ -18,7 +19,10 @@ jest.mock('@/utils/apis/theme', () => ({
 }), { virtual: true });
 
 jest.mock('antd', () => {
-  const Form: any = ({ children }: any) => <form>{children}</form>;
+  const Form: any = ({ children, onValuesChange }: any) => {
+    mockOnValuesChange = onValuesChange;
+    return <form>{children}</form>;
+  };
   Form.useForm = () => [
     {
       validateFields: mockValidateFields,
@@ -72,7 +76,7 @@ describe('ModalConfig', () => {
     mockValidateFields.mockResolvedValue({
       config: { primaryColor: '#222' },
       editor: {
-        json: '{"extra":true}',
+        json: '{"extra":true,"primaryColor":"#222"}',
         css: 'body { color: blue; }',
         js: 'window.theme = "custom";',
       },
@@ -103,6 +107,34 @@ describe('ModalConfig', () => {
     }));
     expect(setOpen).toHaveBeenCalledWith(false);
     expect(okCallBack).toHaveBeenCalled();
+  });
+
+  test('keeps schema edits and JSON on one last-write-wins data source', async () => {
+    render(<ModalConfig open={true} setOpen={jest.fn()} theme={theme} okCallBack={jest.fn()} />);
+
+    mockOnValuesChange?.(
+      { config: { primaryColor: '#333' } },
+      { editor: { json: '{"extra":true,"primaryColor":"#222"}', css: '', js: '' } }
+    );
+    expect(mockSetFieldsValue).toHaveBeenLastCalledWith({
+      editor: {
+        json: JSON.stringify({ extra: true, primaryColor: '#333' }, null, 2),
+        css: '',
+        js: '',
+      },
+    });
+
+    mockValidateFields.mockResolvedValueOnce({
+      config: { primaryColor: '#222' },
+      editor: { json: '{"primaryColor":"#444"}', css: '', js: '' },
+    });
+    fireEvent.click(screen.getByText('ok'));
+
+    await waitFor(() => expect(ThemeApi.update).toHaveBeenCalledWith(9, {
+      config: { primaryColor: '#444' },
+      css: '',
+      js: '',
+    }));
   });
 
   test('closes without saving when cancelled', () => {
@@ -154,7 +186,7 @@ describe('ModalConfig', () => {
     } as themeModel;
     mockValidateFields.mockResolvedValueOnce({
       config: { __css: 'updated config value' },
-      editor: { json: '{"extra":true}', css: 'body {}', js: '' },
+      editor: { json: '{"extra":true,"__css":"updated config value"}', css: 'body {}', js: '' },
     });
 
     render(<ModalConfig open={true} setOpen={jest.fn()} theme={collidingTheme} okCallBack={jest.fn()} />);

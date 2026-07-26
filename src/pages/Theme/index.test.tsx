@@ -362,6 +362,23 @@ describe('Theme page', () => {
       .toHaveAttribute('src', '/uploads/clean.jpg');
   });
 
+  test('does not apply a bundled preview to a legacy custom theme with the same name', async () => {
+    (ThemeApi.getAll as jest.Mock).mockResolvedValueOnce([
+      ...themes,
+      {
+        ...themes[1],
+        id: 4,
+        name: 'paper',
+        display_name: 'Custom Paper',
+        preview: '',
+      },
+    ]);
+
+    await renderTheme();
+
+    expect(within(screen.getByTestId('theme-row-4')).queryByRole('img')).not.toBeInTheDocument();
+  });
+
   test('opens create, config, and preview dialogs from toolbar and row actions', async () => {
     await renderTheme();
 
