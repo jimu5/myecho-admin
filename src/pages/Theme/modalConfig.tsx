@@ -18,13 +18,14 @@ const ModalConfig: React.FC<ModalConfigProps> = ({ open, setOpen, theme, okCallB
 
   useEffect(() => {
     if (open && theme) {
-      if (hasSchema) {
-        form.setFieldsValue(theme.config || {});
-      } else {
-        form.setFieldsValue({
-          __json: JSON.stringify(theme.config || {}, null, 2),
-        });
-      }
+      form.setFieldsValue({
+        config: theme.config || {},
+        editor: {
+          json: JSON.stringify(theme.config || {}, null, 2),
+          css: theme.css || '',
+          js: theme.js || '',
+        },
+      });
     } else if (!open) {
       // 关闭时重置表单
       form.resetFields();
@@ -37,24 +38,25 @@ const ModalConfig: React.FC<ModalConfigProps> = ({ open, setOpen, theme, okCallB
     setSubmitting(true);
     try {
       const values = await form.validateFields();
-      let payload = values;
-      if (!hasSchema) {
-        try {
-          payload = JSON.parse(values.__json || '{}');
-        } catch (error) {
-          message.error('JSON 配置格式有误');
-          return;
-        }
-        if (!payload || Array.isArray(payload) || typeof payload !== 'object') {
-          message.error('JSON 配置必须是对象');
-          return;
-        }
+      const schemaValues = values.config || {};
+      const editor = values.editor || {};
+      let payload;
+      try {
+        payload = JSON.parse(editor.json || '{}');
+      } catch (error) {
+        message.error('JSON 配置格式有误');
+        return;
       }
-      if (hasSchema) {
-        await ThemeApi.updateConfig(theme.id, payload);
-      } else {
-        await ThemeApi.update(theme.id, { config: payload });
+      if (!payload || Array.isArray(payload) || typeof payload !== 'object') {
+        message.error('JSON 配置必须是对象');
+        return;
       }
+      if (hasSchema) Object.assign(payload, schemaValues);
+      await ThemeApi.update(theme.id, {
+        config: payload,
+        css: editor.css || '',
+        js: editor.js || '',
+      });
       message.success('主题配置更新成功');
       setOpen(false);
       try {
@@ -86,30 +88,35 @@ const ModalConfig: React.FC<ModalConfigProps> = ({ open, setOpen, theme, okCallB
       confirmLoading={submitting}
       width={600}
     >
-      <Form
-        form={form}
-        layout="vertical"
-        initialValues={theme.config || {}}
-      >
-        {hasSchema ? schema.map((field) => (
+      <Form form={form} layout="vertical">
+        {hasSchema && schema.map((field) => (
           <Form.Item
             key={field.key}
-            name={field.key}
+            name={['config', field.key]}
             label={field.label || field.key}
             valuePropName={field.type === 'boolean' ? 'checked' : 'value'}
-            rules={[{ required: false }]}
           >
             {renderSchemaField(field)}
           </Form.Item>
-        )) : (
-          <Form.Item
-            name="__json"
-            label="JSON 配置"
-            rules={[{ required: false }]}
-          >
-            <Input.TextArea rows={12} />
-          </Form.Item>
-        )}
+        ))}
+        <Form.Item
+          name={['editor', 'json']}
+          label="完整配置（JSON）"
+        >
+          <Input.TextArea rows={10} style={{ fontFamily: 'monospace' }} />
+        </Form.Item>
+        <Form.Item
+          name={['editor', 'css']}
+          label="自定义 CSS"
+        >
+          <Input.TextArea rows={10} style={{ fontFamily: 'monospace' }} />
+        </Form.Item>
+        <Form.Item
+          name={['editor', 'js']}
+          label="自定义 JavaScript"
+        >
+          <Input.TextArea rows={8} style={{ fontFamily: 'monospace' }} />
+        </Form.Item>
       </Form>
     </Modal>
   );

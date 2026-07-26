@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Card, Col, message, Popconfirm, Row, Space, Statistic, Table, Tag, Tooltip, Upload } from 'antd';
+import { Button, Card, Col, message, Popconfirm, Row, Space, Statistic, Switch, Table, Tag, Tooltip, Upload } from 'antd';
 import type { UploadProps } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { DeleteOutlined, EyeOutlined, InboxOutlined, ReloadOutlined } from '@ant-design/icons';
@@ -9,6 +9,7 @@ import { StaticPageApi, staticPageModel } from '@/utils/apis/staticPage';
 
 const StaticPage: React.FC = () => {
   const [dataSource, setDataSource] = useSafeState<staticPageModel[]>([]);
+  const [updatingNavigation, setUpdatingNavigation] = useSafeState('');
 
   const { runAsync, loading } = useRequest(
     () => StaticPageApi.getAll().then((data: any) => {
@@ -73,6 +74,33 @@ const StaticPage: React.FC = () => {
       title: '描述',
       dataIndex: 'description',
       render: (value) => value || <span className="theme-page__muted">-</span>,
+    },
+    {
+      title: '主题导航',
+      dataIndex: 'show_in_navigation',
+      width: 110,
+      render: (visible, record) => (
+        <Switch
+          checked={visible}
+          loading={updatingNavigation === record.name}
+          onChange={async (checked) => {
+            setUpdatingNavigation(record.name);
+            try {
+              await StaticPageApi.updateNavigation(record.name, checked);
+              message.success(checked ? '已加入主题导航' : '已从主题导航移除');
+              try {
+                await runAsync();
+              } catch (error) {
+                message.warning('导航设置已保存，但列表刷新失败，请手动刷新');
+              }
+            } catch (error) {
+              message.error('导航设置更新失败');
+            } finally {
+              setUpdatingNavigation('');
+            }
+          }}
+        />
+      ),
     },
     {
       title: '操作',

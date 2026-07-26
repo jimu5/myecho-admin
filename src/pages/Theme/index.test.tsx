@@ -89,6 +89,7 @@ jest.mock('antd', () => {
       </div>
     ),
     Tag: ({ children }: any) => <span>{children}</span>,
+    Image: ({ preview, ...props }: any) => <img {...props} />,
     Progress: ({ percent }: any) => <div role="progressbar" aria-valuenow={percent} />,
     Tooltip: ({ children }: any) => <>{children}</>,
     Upload,
@@ -109,6 +110,7 @@ jest.mock('@ant-design/icons', () => ({
 jest.mock('@ant-design/pro-table', () => ({
   EditableProTable: ({ columns, value, editable, loading }: any) => {
     const actionColumn = columns.find((column: any) => column.key === 'actions');
+    const previewColumn = columns.find((column: any) => column.dataIndex === 'preview');
 
     return (
       <div data-testid="theme-table" data-loading={String(loading)}>
@@ -116,6 +118,7 @@ jest.mock('@ant-design/pro-table', () => ({
           <div data-testid={`theme-row-${record.id}`} key={record.id}>
             <span>{record.display_name}</span>
             <span>{record.name}</span>
+            {previewColumn.render(null, record)}
             {actionColumn.render(null, record, 0, {
               startEditable: jest.fn(),
             })}
@@ -333,15 +336,30 @@ describe('Theme page', () => {
     await waitFor(() => expect(ThemeApi.getAll).toHaveBeenCalledTimes(3));
   });
 
-  test('keeps bundled themes previewable but immutable', async () => {
+  test('keeps bundled themes customizable and previewable but protected from editing and deletion', async () => {
     await renderTheme();
 
     const bundledThemeRow = screen.getByTestId('theme-row-3');
+    expect(within(bundledThemeRow).getByRole('img', { name: 'Anime Theme 主题预览' }))
+      .toHaveAttribute('src', '/static/img/theme-previews/anime.jpg');
     expect(within(bundledThemeRow).getByText('应用')).toBeInTheDocument();
     expect(within(bundledThemeRow).getByText('预览')).toBeInTheDocument();
-    expect(within(bundledThemeRow).queryByText('配置')).not.toBeInTheDocument();
+    expect(within(bundledThemeRow).getByText('定制')).toBeInTheDocument();
     expect(within(bundledThemeRow).queryByText('编辑')).not.toBeInTheDocument();
     expect(within(bundledThemeRow).queryByText('删除')).not.toBeInTheDocument();
+  });
+
+  test('uses bundled previews without replacing a custom theme preview', async () => {
+    (ThemeApi.getAll as jest.Mock).mockResolvedValueOnce(
+      themes.map((theme) => theme.id === 2 ? { ...theme, preview: '/uploads/clean.jpg' } : theme)
+    );
+
+    await renderTheme();
+
+    expect(within(screen.getByTestId('theme-row-1')).getByRole('img', { name: 'Default Theme 主题预览' }))
+      .toHaveAttribute('src', '/static/img/theme-previews/default.jpg');
+    expect(within(screen.getByTestId('theme-row-2')).getByRole('img', { name: 'Clean Theme 主题预览' }))
+      .toHaveAttribute('src', '/uploads/clean.jpg');
   });
 
   test('opens create, config, and preview dialogs from toolbar and row actions', async () => {
@@ -351,7 +369,7 @@ describe('Theme page', () => {
     expect(screen.getByRole('dialog', { name: 'create-theme' })).toBeInTheDocument();
 
     const customThemeRow = screen.getByTestId('theme-row-2');
-    fireEvent.click(within(customThemeRow).getByText('配置'));
+    fireEvent.click(within(customThemeRow).getByText('定制'));
     expect(screen.getByRole('dialog', { name: 'config-theme' })).toHaveTextContent('Clean Theme');
 
     fireEvent.click(within(customThemeRow).getByText('预览'));

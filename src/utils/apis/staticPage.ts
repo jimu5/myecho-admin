@@ -9,6 +9,7 @@ export interface staticPageModel {
   entry: string;
   url: string;
   asset_base_url: string;
+  show_in_navigation: boolean;
   updated_at: string;
 }
 
@@ -32,5 +33,11 @@ export class StaticPageApi {
 
   static delete(name: string) {
     return axios.delete(`${StaticPageApi.baseApiUrl}/${name}`);
+  }
+
+  static updateNavigation(name: string, showInNavigation: boolean) {
+    return axios.patch(`${StaticPageApi.baseApiUrl}/${name}`, {
+      show_in_navigation: showInNavigation,
+    });
   }
 }

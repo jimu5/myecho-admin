@@ -25,6 +25,10 @@ export default defineConfig(({ mode }) => ({
         changeOrigin: true,
         ws: true,
       },
+      '/static/': {
+        target: 'http://localhost:2999',
+        changeOrigin: true,
+      },
     },
   },
   build: {

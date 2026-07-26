@@ -9,6 +9,7 @@ jest.mock('@/utils/apis/staticPage', () => ({
   StaticPageApi: {
     getAll: jest.fn(),
     upload: jest.fn(),
+    updateNavigation: jest.fn(),
     delete: jest.fn(),
   },
 }), { virtual: true });
@@ -39,6 +40,7 @@ jest.mock('antd', () => {
   const message = {
     success: jest.fn(),
     error: jest.fn(),
+    warning: jest.fn(),
   };
 
   const Upload = {
@@ -60,6 +62,7 @@ jest.mock('antd', () => {
 
   const Table = ({ columns, dataSource, loading }: any) => {
     const actionColumn = columns.find((column: any) => column.key === 'actions');
+    const navigationColumn = columns.find((column: any) => column.dataIndex === 'show_in_navigation');
     return (
       <div data-testid="static-page-table" data-loading={String(loading)}>
         {dataSource.map((record: any) => (
@@ -67,6 +70,7 @@ jest.mock('antd', () => {
             <span>{record.display_name}</span>
             <span>{record.name}</span>
             <span>{record.url}</span>
+            {navigationColumn.render(record.show_in_navigation, record)}
             {actionColumn.render(null, record)}
           </div>
         ))}
@@ -95,6 +99,11 @@ jest.mock('antd', () => {
       </div>
     ),
     Tag: ({ children }: any) => <span>{children}</span>,
+    Switch: ({ checked, onChange, loading }: any) => (
+      <button disabled={loading} onClick={() => onChange(!checked)}>
+        {checked ? 'navigation on' : 'navigation off'}
+      </button>
+    ),
     Tooltip: ({ children }: any) => <>{children}</>,
     Upload,
     Popconfirm: ({ children, onConfirm }: any) =>
@@ -123,6 +132,7 @@ const pages = [
     entry: 'index.html',
     url: '/static-pages/campaign/',
     asset_base_url: '/static-pages/campaign/',
+    show_in_navigation: false,
     updated_at: '2026-06-16T00:00:00Z',
   },
 ];
@@ -137,13 +147,9 @@ describe('StaticPage page', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (StaticPageApi.getAll as jest.Mock).mockImplementation(() => ({
-      then: (resolve: any) => {
-        resolve(pages);
-        return Promise.resolve();
-      },
-    }));
+    (StaticPageApi.getAll as jest.Mock).mockResolvedValue(pages);
     (StaticPageApi.upload as jest.Mock).mockResolvedValue({});
+    (StaticPageApi.updateNavigation as jest.Mock).mockResolvedValue({});
     (StaticPageApi.delete as jest.Mock).mockResolvedValue({});
   });
 
@@ -194,6 +200,31 @@ describe('StaticPage page', () => {
     await waitFor(() => expect(StaticPageApi.delete).toHaveBeenCalledWith('campaign'));
     expect(message.success).toHaveBeenCalledWith('删除成功');
     await waitFor(() => expect(StaticPageApi.getAll).toHaveBeenCalledTimes(2));
+  });
+
+  test('adds a static page to the theme navigation', async () => {
+    await renderStaticPage();
+
+    const row = screen.getByTestId('static-page-row-campaign');
+    fireEvent.click(within(row).getByText('navigation off'));
+
+    await waitFor(() => expect(StaticPageApi.updateNavigation).toHaveBeenCalledWith('campaign', true));
+    expect(message.success).toHaveBeenCalledWith('已加入主题导航');
+    await waitFor(() => expect(StaticPageApi.getAll).toHaveBeenCalledTimes(2));
+  });
+
+  test('reports refresh failure without reporting a saved navigation change as failed', async () => {
+    (StaticPageApi.getAll as jest.Mock)
+      .mockResolvedValueOnce(pages)
+      .mockRejectedValueOnce(new Error('refresh failed'));
+    await renderStaticPage();
+
+    const row = screen.getByTestId('static-page-row-campaign');
+    fireEvent.click(within(row).getByText('navigation off'));
+
+    await waitFor(() => expect(message.success).toHaveBeenCalledWith('已加入主题导航'));
+    expect(message.warning).toHaveBeenCalledWith('导航设置已保存，但列表刷新失败，请手动刷新');
+    expect(message.error).not.toHaveBeenCalledWith('导航设置更新失败');
   });
 
   test('does not expose inline editing controls', async () => {

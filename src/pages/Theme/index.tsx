@@ -13,6 +13,12 @@ import ModalConfig from './modalConfig';
 import ModalPreview from './modalPreview';
 
 const maxThemePackageBytes = 20 * 1024 * 1024;
+const builtInThemePreviews: Record<string, string> = {
+  default: '/static/img/theme-previews/default.jpg',
+  paper: '/static/img/theme-previews/paper.jpg',
+  night: '/static/img/theme-previews/night.jpg',
+  anime: '/static/img/theme-previews/anime.jpg',
+};
 
 const Theme: React.FC = () => {
   const [editableKeys, setEditableKeys] = useSafeState<React.Key[]>([]);
@@ -152,9 +158,18 @@ const Theme: React.FC = () => {
       width: 96,
       editable: false,
       responsive: ['md'],
-      render: (_, record) => record.preview ? (
-        <Image width={64} height={40} src={record.preview} style={{ objectFit: 'cover' }} />
-      ) : <span className="theme-page__muted">-</span>,
+      render: (_, record) => {
+        const preview = record.preview || builtInThemePreviews[record.name];
+        return preview ? (
+          <Image
+            width={64}
+            height={40}
+            src={preview}
+            alt={`${record.display_name} 主题预览`}
+            style={{ objectFit: 'cover' }}
+          />
+        ) : <span className="theme-page__muted">-</span>;
+      },
     },
     {
       title: '作者',
@@ -211,20 +226,18 @@ const Theme: React.FC = () => {
               </Button>
             </Popconfirm>
           )}
-          {!data.is_bundled && (
-            <Button
-              key="config"
-              type="link"
-              size="small"
-              disabled={mutationBusy}
-              onClick={() => {
-                setCurrentTheme(data);
-                setOpenModalConfig(true);
-              }}
-            >
-              配置
-            </Button>
-          )}
+          <Button
+            key="config"
+            type="link"
+            size="small"
+            disabled={mutationBusy}
+            onClick={() => {
+              setCurrentTheme(data);
+              setOpenModalConfig(true);
+            }}
+          >
+            定制
+          </Button>
           <Button
             key="preview"
             type="link"
