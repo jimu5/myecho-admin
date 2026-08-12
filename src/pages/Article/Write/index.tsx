@@ -28,7 +28,17 @@ import {
 } from '@ant-design/icons';
 import 'vditor/dist/index.css';
 
-import { article, articleRequest, ArticleApi, articleStatus, articlePublishStatus, articleTypes, articleContentFormats, isScheduledArticle } from '@/utils/apis/article';
+import {
+  article,
+  articleRequest,
+  articleRevision,
+  ArticleApi,
+  articleStatus,
+  articlePublishStatus,
+  articleTypes,
+  articleContentFormats,
+  isScheduledArticle,
+} from '@/utils/apis/article';
 import { tag, TagApi } from '@/utils/apis/tag';
 import { category, CategoryApi } from '@/utils/apis/category';
 import { vditorUploadOptions } from '@/utils/vditorConfg';
@@ -79,6 +89,9 @@ const ArticleWrite: React.FC = () => {
   const [mediaLoading, setMediaLoading] = useSafeState(false);
   const [mediaTotal, setMediaTotal] = useSafeState(0);
   const [mediaPage, setMediaPage] = useSafeState({ current: 1, pageSize: 20 });
+  const [revisionOpen, setRevisionOpen] = useSafeState(false);
+  const [revisions, setRevisions] = useSafeState<articleRevision[]>([]);
+  const [revisionsLoading, setRevisionsLoading] = useSafeState(false);
   const [articleEditCache, setArticleEditCache] =
     useLocalStorageState<ArticleLocalCache>('articleEditCache', {
       defaultValue: { status: 1, visibility: 1, type: 1, content_format: 'markdown' },
@@ -252,6 +265,49 @@ const ArticleWrite: React.FC = () => {
     setMediaOpen(false);
   };
 
+  const loadRevisions = useCallback(async () => {
+    if (!article_id) {
+      return;
+    }
+    setRevisionsLoading(true);
+    try {
+      setRevisions(await ArticleApi.revisions(article_id));
+    } catch (error) {
+      notification.error({ message: '版本历史加载失败', description: getErrorMessage(error) });
+    } finally {
+      setRevisionsLoading(false);
+    }
+  }, [article_id, setRevisions, setRevisionsLoading]);
+
+  const openRevisionHistory = () => {
+    setRevisionOpen(true);
+    void loadRevisions();
+  };
+
+  const restoreRevision = (revision: articleRevision) => {
+    if (!article_id) {
+      return;
+    }
+    Modal.confirm({
+      title: '恢复这个版本？',
+      content: `${dayjs(revision.created_at).format('YYYY-MM-DD HH:mm')} · ${revision.title}`,
+      okText: '恢复',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          const restored = await ArticleApi.restoreRevision(article_id, revision.id);
+          setArticleDetail(restored);
+          vditor?.setValue(restored?.detail?.content || '');
+          setDirty(false);
+          notification.success({ message: '版本已恢复' });
+          await loadRevisions();
+        } catch (error) {
+          notification.error({ message: '恢复失败', description: getErrorMessage(error) });
+        }
+      },
+    });
+  };
+
   useEffect(() => {
     const useCache = Boolean(!article_id);
     const vditor = new Vditor('vditor', {
@@ -389,10 +445,40 @@ const ArticleWrite: React.FC = () => {
             <p>{getEditArticle()?.summary?.trim() || '留空后将自动从正文提取摘要。'}</p>
           </div>
         </section>
+        <section className={s.summarySection} aria-labelledby="article-seo-label">
+          <div className={s.summaryHeading}>
+            <label id="article-seo-label">搜索与分享</label>
+            <span>留空时使用文章标题、摘要与站点分享图</span>
+          </div>
+          <Input
+            aria-label="SEO 标题"
+            placeholder="SEO 标题"
+            maxLength={160}
+            value={(getEditArticle() as any)?.seo_title || ''}
+            onChange={(event) => setEditArticle({ seo_title: event.target.value })}
+          />
+          <Input.TextArea
+            aria-label="SEO 描述"
+            placeholder="SEO 描述"
+            maxLength={255}
+            showCount
+            autoSize={{ minRows: 2, maxRows: 4 }}
+            value={(getEditArticle() as any)?.seo_description || ''}
+            onChange={(event) => setEditArticle({ seo_description: event.target.value })}
+          />
+          <Input
+            aria-label="分享图地址"
+            placeholder="分享图地址，例如 /storage/share.jpg"
+            maxLength={512}
+            value={(getEditArticle() as any)?.share_image || ''}
+            onChange={(event) => setEditArticle({ share_image: event.target.value })}
+          />
+        </section>
         <div id="vditor" className="vditor" />
         <Space wrap style={{ marginTop: 12 }}>
           <Button onClick={() => setPreviewOpen(true)}>预览</Button>
           <Button onClick={openMediaLibrary}>媒体库</Button>
+          {article_id && <Button onClick={openRevisionHistory}>版本历史</Button>}
           <span className={s.autoSaveText}>
             {lastEditedAt ? `最近编辑 ${lastEditedAt}` : '等待编辑'}
             {dirty ? ' · 有未发布改动' : ''}
@@ -569,6 +655,28 @@ const ArticleWrite: React.FC = () => {
           </Card>
         </div>
       </Sider>
+      <Modal
+        title="版本历史"
+        open={revisionOpen}
+        onCancel={() => setRevisionOpen(false)}
+        footer={null}
+        width={680}>
+        <List
+          loading={revisionsLoading}
+          dataSource={revisions}
+          locale={{ emptyText: '暂无历史版本；下次保存时会保留当前版本。' }}
+          renderItem={(revision) => (
+            <List.Item actions={[
+              <Button type="link" onClick={() => restoreRevision(revision)}>恢复</Button>,
+            ]}>
+              <List.Item.Meta
+                title={revision.title || '未命名版本'}
+                description={`${dayjs(revision.created_at).format('YYYY-MM-DD HH:mm')} · /${revision.slug}`}
+              />
+            </List.Item>
+          )}
+        />
+      </Modal>
       <Modal
         title="文章预览"
         open={previewOpen}

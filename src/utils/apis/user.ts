@@ -36,6 +36,16 @@ export interface setupResponse extends setupStatus {
     user: loginResponse;
 }
 
+export interface profileParams {
+    email: string;
+    nick_name: string;
+}
+
+export interface passwordParams {
+    old_password: string;
+    new_password: string;
+}
+
 export class UserApi {
     static login(params: loginParams): Promise<loginResponse> {
         return axios.post<any, loginResponse>("/login", params);
@@ -47,5 +57,23 @@ export class UserApi {
 
     static setup(params: setupParams): Promise<setupResponse> {
         return axios.post<any, setupResponse>("/setup", params);
+    }
+
+    static profile(): Promise<loginResponse> {
+        return axios.get<any, loginResponse>("/account/profile");
+    }
+
+    static updateProfile(params: profileParams): Promise<loginResponse> {
+        return axios.patch<any, loginResponse>("/account/profile", params);
+    }
+
+    static updatePassword(params: passwordParams): Promise<loginResponse> {
+        return axios.patch<any, loginResponse>("/account/password", params);
+    }
+
+    static logout(token: string): Promise<{ logged_out: boolean }> {
+        return axios.post<any, { logged_out: boolean }>("/logout", undefined, {
+            headers: { Authorization: `token ${token}` },
+        });
     }
 }

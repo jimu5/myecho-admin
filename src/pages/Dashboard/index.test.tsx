@@ -21,6 +21,14 @@ jest.mock('ahooks', () => ({
       article_count: 2,
       draft_count: 1,
       pending_comment_count: 3,
+      scheduled_count: 1,
+      view_count_7_days: 70,
+      view_count_30_days: 300,
+      comment_count_7_days: 7,
+      comment_count_30_days: 30,
+      scheduled_articles: [
+        { id: 4, title: 'Scheduled Post', status: 1, post_time: '2026-06-04T10:00:00Z' },
+      ],
       recent_articles: [
         { id: 1, title: 'Public Post', status: 1, post_time: '2026-06-01T10:00:00Z' },
         { id: 2, title: 'Draft Post', status: 4, post_time: '2026-06-02T10:00:00Z' },
@@ -91,6 +99,10 @@ describe('Dashboard', () => {
     expect(screen.getByText('Public Post')).toBeInTheDocument();
     expect(screen.getByText('Draft Post')).toBeInTheDocument();
     expect(screen.getByText('Popular Post')).toBeInTheDocument();
+    expect(screen.getByText('Scheduled Post')).toBeInTheDocument();
+    expect(screen.getAllByText('近 7 天')).toHaveLength(2);
+    expect(screen.getByText('70')).toBeInTheDocument();
+    expect(screen.getByText('300')).toBeInTheDocument();
     expect(screen.getByText('99 次阅读 · 5 条评论')).toBeInTheDocument();
   });
 });

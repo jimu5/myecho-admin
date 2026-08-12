@@ -42,6 +42,7 @@ describe('Setting modalCreate', () => {
     fireEvent.change(screen.getByPlaceholderText('设置 key'), { target: { value: 'SiteTitle' } });
     fireEvent.change(screen.getByPlaceholderText('设置 type'), { target: { value: 'string' } });
     fireEvent.change(screen.getByPlaceholderText('设置 value'), { target: { value: 'Myecho' } });
+    fireEvent.click(screen.getByRole('checkbox', { name: '允许公开读取' }));
     fireEvent.click(screen.getByText('ok'));
 
     await waitFor(() =>
@@ -49,6 +50,7 @@ describe('Setting modalCreate', () => {
         key: 'SiteTitle',
         type: 'string',
         value: 'Myecho',
+        is_public: true,
       })
     );
     expect(setOpen).toHaveBeenCalledWith(false);

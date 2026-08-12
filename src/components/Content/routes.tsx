@@ -20,6 +20,7 @@ const elements = {
   setting: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Setting')),
   theme: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Theme')),
   staticPage: lazy(() => import(/* webpackPrefetch:true */ '@/pages/StaticPage')),
+  profile: lazy(() => import(/* webpackPrefetch:true */ '@/pages/Profile')),
 };
 
 const contentRoutes = [
@@ -92,6 +93,10 @@ const contentRoutes = [
   {
     path: 'static-pages',
     element: <elements.staticPage />,
+  },
+  {
+    path: 'profile',
+    element: <elements.profile />,
   }
 ];
 

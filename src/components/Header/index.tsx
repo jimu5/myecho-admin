@@ -11,7 +11,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 import { type AdminThemeMode, useAdminTheme } from '@/themeContext';
-import { loginResponse } from '@/utils/apis/user';
+import { loginResponse, UserApi } from '@/utils/apis/user';
 
 const { Header } = Layout;
 const themeModeLabels: Record<AdminThemeMode, string> = {
@@ -23,6 +23,7 @@ const themeModeLabels: Record<AdminThemeMode, string> = {
 const Myheader: React.FC = () => {
   const navigate = useNavigate();
   const [user] = useLocalStorageState<loginResponse>('user');
+  const [loggingOut, setLoggingOut] = React.useState(false);
   const { theme, themeMode, setThemeMode } = useAdminTheme();
   const displayName = user?.nick_name || '管理员';
   const ThemeIcon = themeMode === 'system'
@@ -38,22 +39,36 @@ const Myheader: React.FC = () => {
     selectedKeys: [themeMode],
     onClick: ({ key }: { key: string }) => setThemeMode(key as AdminThemeMode),
   };
+  const logout = async () => {
+    if (loggingOut) {
+      return;
+    }
+    setLoggingOut(true);
+    try {
+      if (user?.token) {
+        await UserApi.logout(user.token);
+      }
+      localStorage.removeItem('user');
+      navigate('/admin/login', { replace: true });
+    } catch {
+      return;
+    } finally {
+      setLoggingOut(false);
+    }
+  };
   const menu = (
     <Menu
       items={[
         {
           key: '1',
-          label: <a href="/profile">个人资料</a>,
+          label: <span onClick={() => navigate('/admin/profile')}>个人资料</span>,
         },
         {
           key: '2',
           label: (
             <span
-              onClick={() => {
-                localStorage.removeItem('user');
-                navigate('/admin/login', { replace: true });
-              }}>
-              退出
+              onClick={() => void logout()}>
+              {loggingOut ? '退出中...' : '退出'}
             </span>
           ),
         }

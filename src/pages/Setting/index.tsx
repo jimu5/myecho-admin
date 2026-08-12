@@ -4,7 +4,7 @@ import { EditableProTable } from "@ant-design/pro-table";
 import type { ProColumns } from "@ant-design/pro-components";
 import { useRequest, useSafeState } from "ahooks";
 
-import { SettingApi, settingModel } from "@/utils/apis/setting";
+import { RestorePreview, SettingApi, settingModel } from "@/utils/apis/setting";
 
 import ModalCreate from "./modalCreate";
 
@@ -29,15 +29,22 @@ const BASIC_SETTINGS: BasicSetting[] = [
   { key: 'BaseURL', label: '站点地址', required: true },
 ];
 
-const BASIC_KEYS = new Set<string>(BASIC_SETTINGS.map(({ key }) => key));
+const NOTIFICATION_KEY = 'CommentNotificationWebhook';
+const MANAGED_KEYS = new Set<string>([...BASIC_SETTINGS.map(({ key }) => key), NOTIFICATION_KEY]);
 
 const Setting: React.FC = () => {
-  const [form] = Form.useForm<Record<string, string>>();
+  const [form] = Form.useForm<Record<string, string | boolean>>();
+  const [notificationForm] = Form.useForm<{ webhook: string }>();
   const [editableKeys, setEditableKeys] = useSafeState<React.Key[]>([]);
   const [dataSource, setDataSource] = useSafeState<settingModel[]>([]);
   const [openModalCreate, setOpenModalCreate] = useSafeState(false);
   const [saving, setSaving] = useSafeState(false);
   const [exporting, setExporting] = useSafeState(false);
+  const [backupFile, setBackupFile] = useSafeState<File>();
+  const [backupPreview, setBackupPreview] = useSafeState<RestorePreview>();
+  const [restoreResult, setRestoreResult] = useSafeState<RestorePreview>();
+  const [previewing, setPreviewing] = useSafeState(false);
+  const [restoring, setRestoring] = useSafeState(false);
 
   const columns: ProColumns<settingModel>[] = [
     {
@@ -101,13 +108,28 @@ const Setting: React.FC = () => {
           </Popconfirm>
         </Space>
       )
+    },
+    {
+      title: '公开读取',
+      dataIndex: 'is_public',
+      valueType: 'switch',
+      width: 100,
+      fieldProps: (_form, { entity }) => ({
+        disabled: entity.key === NOTIFICATION_KEY,
+      }),
     }
   ]
 
-  const { runAsync, loading } = useRequest(() => SettingApi.getAll().then((data: any) => {
+  const { runAsync, loading } = useRequest(() => SettingApi.getAdminAll().then((data: any) => {
     const settings = data || [];
     setDataSource(settings);
-    form.setFieldsValue(Object.fromEntries(settings.map((item: settingModel) => [item.key, item.value])));
+    form.setFieldsValue(Object.fromEntries(settings.flatMap((item: settingModel) => [
+      [item.key, item.value],
+      [`${item.key}__public`, item.is_public],
+    ])));
+    notificationForm.setFieldsValue({
+      webhook: settings.find((item: settingModel) => item.key === NOTIFICATION_KEY)?.value || '',
+    });
     return settings;
   }));
 
@@ -117,16 +139,33 @@ const Setting: React.FC = () => {
     try {
       await Promise.all(BASIC_SETTINGS.map(({ key, label }) => {
         const current = dataSource.find((item) => item.key === key);
-        const value = values[key] || '';
+        const value = String(values[key] || '');
         return current
-          ? SettingApi.updateValue(key, value, current.description || label)
-          : SettingApi.create({ key, value, type: 'string', description: label });
+          ? SettingApi.updateValue(key, value, current.description || label, Boolean(values[`${key}__public`]))
+          : SettingApi.create({ key, value, type: 'string', description: label, is_public: Boolean(values[`${key}__public`]) });
       }));
       message.success('基础设置已保存');
       await runAsync();
     } finally {
       setSaving(false);
     }
+  };
+
+  const saveNotificationSettings = async ({ webhook }: { webhook: string }) => {
+    const current = dataSource.find((item) => item.key === NOTIFICATION_KEY);
+    if (current) {
+      await SettingApi.updateValue(NOTIFICATION_KEY, webhook || '', current.description || '新评论通知 Webhook', false);
+    } else {
+      await SettingApi.create({
+        key: NOTIFICATION_KEY,
+        value: webhook || '',
+        type: 'string',
+        description: '新评论通知 Webhook',
+        is_public: false,
+      });
+    }
+    message.success('通知设置已保存');
+    await runAsync();
   };
 
   const exportBackup = async () => {
@@ -145,6 +184,36 @@ const Setting: React.FC = () => {
     }
   };
 
+  const previewBackup = async () => {
+    if (!backupFile) {
+      message.error('请先选择 ZIP 备份文件');
+      return;
+    }
+    setPreviewing(true);
+    try {
+      setBackupPreview(await SettingApi.importBackup(backupFile, true));
+      setRestoreResult(undefined);
+      message.success('备份校验通过');
+    } finally {
+      setPreviewing(false);
+    }
+  };
+
+  const restoreBackup = async () => {
+    if (!backupFile || !backupPreview || !window.confirm('恢复会替换当前内容和存储文件，确定继续吗？')) {
+      return;
+    }
+    setRestoring(true);
+    try {
+      const result = await SettingApi.importBackup(backupFile, false);
+      setRestoreResult(result);
+      message.success('恢复完成');
+      await runAsync();
+    } finally {
+      setRestoring(false);
+    }
+  };
+
   const basicSettings = (
     <div className="admin-panel">
       <Form form={form} layout="vertical" onFinish={saveBasicSettings}>
@@ -160,12 +229,17 @@ const Setting: React.FC = () => {
                   ? <Input.TextArea rows={key === 'SiteAuthorBio' ? 3 : 2} placeholder={key === 'SiteSocialLinks' ? '每行一个社交链接' : undefined} />
                   : <Input placeholder={key === 'BaseURL' ? 'https://example.com' : undefined} />}
               </Form.Item>
+              <label>
+                <Form.Item name={`${key}__public`} valuePropName="checked" noStyle>
+                  <input type="checkbox" />
+                </Form.Item>
+                {' '}允许公开读取
+              </label>
             </Col>
           ))}
         </Row>
         <Space wrap>
           <Button type="primary" htmlType="submit" loading={saving}>保存基础设置</Button>
-          <Button onClick={exportBackup} loading={exporting}>导出备份</Button>
         </Space>
       </Form>
     </div>
@@ -181,16 +255,16 @@ const Setting: React.FC = () => {
         <EditableProTable
           rowKey="id"
           columns={columns}
-          value={dataSource.filter((item) => !BASIC_KEYS.has(item.key))}
+          value={dataSource.filter((item) => !MANAGED_KEYS.has(item.key))}
           onChange={(values) => setDataSource([
-            ...dataSource.filter((item) => BASIC_KEYS.has(item.key)),
+            ...dataSource.filter((item) => MANAGED_KEYS.has(item.key)),
             ...(values as settingModel[]),
           ])}
           editable={{
             type: 'single',
             editableKeys,
             onSave: async (_rowKey, data) => {
-              await SettingApi.updateValue(data.key, data.value, data.description);
+              await SettingApi.updateValue(data.key, data.value, data.description, data.is_public);
               message.success("保存成功");
               await runAsync();
             },
@@ -206,18 +280,74 @@ const Setting: React.FC = () => {
     </>
   );
 
+  const notificationSettings = (
+    <div className="admin-panel">
+      <Form form={notificationForm} layout="vertical" onFinish={saveNotificationSettings}>
+        <Form.Item
+          name="webhook"
+          label="新评论通知 Webhook"
+          extra="评论提交后可由服务端向此地址发送通知。该值始终私密，不会通过公开设置接口返回。"
+        >
+          <Input type="password" placeholder="https://example.com/webhook" autoComplete="off" />
+        </Form.Item>
+        <Button type="primary" htmlType="submit">保存通知设置</Button>
+      </Form>
+    </div>
+  );
+
+  const backupSettings = (
+    <div className="admin-panel">
+      <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+        <p>导出包含内容与存储文件的脱敏 ZIP。恢复前必须先预检，正式恢复会自动保留当前站点的恢复点。</p>
+        <Space wrap>
+          <Button onClick={exportBackup} loading={exporting}>导出备份</Button>
+          <input
+            type="file"
+            accept=".zip,application/zip"
+            onChange={(event) => {
+              setBackupFile(event.target.files?.[0]);
+              setBackupPreview(undefined);
+              setRestoreResult(undefined);
+            }}
+          />
+          <Button onClick={previewBackup} loading={previewing} disabled={!backupFile}>预检备份</Button>
+          <Button danger type="primary" onClick={restoreBackup} loading={restoring} disabled={!backupPreview}>确认恢复</Button>
+        </Space>
+        {backupPreview && (
+          <div role="status">
+            <strong>预检通过</strong>
+            <p>
+              备份时间：{new Date(backupPreview.exported_at).toLocaleString()}；
+              文章 {backupPreview.counts.articles}，评论 {backupPreview.counts.comments}，
+              设置 {backupPreview.counts.settings}，存储文件 {backupPreview.storage_files}
+            </p>
+          </div>
+        )}
+        {restoreResult && (
+          <div role="status">
+            <strong>恢复完成</strong>
+            <p>恢复前自动备份：{restoreResult.backup_path}</p>
+            {restoreResult.cleanup_warning && <p>旧存储清理提示：{restoreResult.cleanup_warning}</p>}
+          </div>
+        )}
+      </Space>
+    </div>
+  );
+
   return (
     <div className="admin-table-page setting-page">
       <div className="admin-page-header">
         <div>
           <h1 className="admin-page-title">站点设置</h1>
-          <p className="admin-page-subtitle">配置站点展示信息，导出内容备份，并管理高级参数。</p>
+          <p className="admin-page-subtitle">配置公开展示信息、私密通知参数和站点备份恢复。</p>
         </div>
       </div>
       <Tabs
         defaultActiveKey="basic"
         items={[
           { key: 'basic', label: '基础设置', children: basicSettings },
+          { key: 'notifications', label: '通知设置', children: notificationSettings },
+          { key: 'backup', label: '备份与恢复', children: backupSettings },
           { key: 'advanced', label: '高级设置', children: advancedSettings },
         ]}
       />

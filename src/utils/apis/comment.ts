@@ -32,6 +32,9 @@ export interface commentListParams {
   status?: number;
   article_id?: number;
   article_uid?: string;
+  keyword?: string;
+  date_from?: string;
+  date_to?: string;
 }
 
 export class CommentApi {
@@ -45,6 +48,10 @@ export class CommentApi {
 
   static batch(params: { ids: number[]; action: string; status?: number }) {
     return axios.post('/comments/batch', params);
+  }
+
+  static reply(id: number, content: string) {
+    return axios.post(`/comments/${id}/reply`, { content });
   }
 
   static delete(id: number) {

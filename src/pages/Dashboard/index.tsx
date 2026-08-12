@@ -11,6 +11,7 @@ const Dashboard: React.FC = () => {
   const { data, loading } = useRequest(DashboardApi.get);
   const recentArticles = (data?.recent_articles || []) as article[];
   const popularArticles = (data?.popular_articles || []) as article[];
+  const scheduledArticles = (data?.scheduled_articles || []) as article[];
 
   return (
     <div className="admin-page dashboard-page">
@@ -22,19 +23,64 @@ const Dashboard: React.FC = () => {
         <AdminNavLink to="article/write">写新文章</AdminNavLink>
       </div>
       <Row gutter={[16, 16]}>
-        <Col xs={24} md={8}>
+        <Col xs={24} md={6}>
           <Card className="dashboard-stat-card dashboard-stat-card--articles" loading={loading}>
             <Statistic title="文章总数" value={data?.article_count || 0} />
           </Card>
         </Col>
-        <Col xs={24} md={8}>
+        <Col xs={24} md={6}>
           <Card className="dashboard-stat-card dashboard-stat-card--drafts" loading={loading}>
             <Statistic title="草稿" value={data?.draft_count || 0} />
           </Card>
         </Col>
-        <Col xs={24} md={8}>
+        <Col xs={24} md={6}>
           <Card className="dashboard-stat-card dashboard-stat-card--comments" loading={loading}>
             <Statistic title="待审评论" value={data?.pending_comment_count || 0} />
+          </Card>
+        </Col>
+        <Col xs={24} md={6}>
+          <Card className="dashboard-stat-card" loading={loading}>
+            <Statistic title="未来 7 天定时发布" value={data?.scheduled_count || 0} />
+          </Card>
+        </Col>
+      </Row>
+      <Row gutter={[16, 16]} className="dashboard-feed-grid">
+        <Col xs={24} md={12}>
+          <Card title="阅读数据" loading={loading}>
+            <Row gutter={16}>
+              <Col span={12}><Statistic title="近 7 天" value={data?.view_count_7_days || 0} suffix="次" /></Col>
+              <Col span={12}><Statistic title="近 30 天" value={data?.view_count_30_days || 0} suffix="次" /></Col>
+            </Row>
+          </Card>
+        </Col>
+        <Col xs={24} md={12}>
+          <Card title="评论数据" loading={loading}>
+            <Row gutter={16}>
+              <Col span={12}><Statistic title="近 7 天" value={data?.comment_count_7_days || 0} suffix="条" /></Col>
+              <Col span={12}><Statistic title="近 30 天" value={data?.comment_count_30_days || 0} suffix="条" /></Col>
+            </Row>
+          </Card>
+        </Col>
+      </Row>
+      <Row gutter={[16, 16]} className="dashboard-feed-grid">
+        <Col span={24}>
+          <Card
+            className="dashboard-feed-card"
+            title="未来 7 天定时发布"
+            extra={<AdminNavLink to="article/all">查看全部</AdminNavLink>}
+            loading={loading}>
+            <List
+              dataSource={scheduledArticles}
+              locale={{ emptyText: '未来 7 天暂无定时发布。' }}
+              renderItem={(item) => (
+                <List.Item actions={[<AdminNavLink to={`article/write/${item.id}`}>编辑</AdminNavLink>]}>
+                  <List.Item.Meta
+                    title={item.title}
+                    description={dayjs(item.post_time).format('YYYY-MM-DD HH:mm')}
+                  />
+                </List.Item>
+              )}
+            />
           </Card>
         </Col>
       </Row>

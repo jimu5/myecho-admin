@@ -6,11 +6,12 @@ import { SettingApi } from '@/utils/apis/setting';
 
 jest.mock('@/utils/apis/setting', () => ({
   SettingApi: {
-    getAll: jest.fn(),
+    getAdminAll: jest.fn(),
     create: jest.fn(),
     updateValue: jest.fn(),
     delete: jest.fn(),
     exportBackup: jest.fn(),
+    importBackup: jest.fn(),
   },
 }), { virtual: true });
 
@@ -76,7 +77,7 @@ jest.mock('antd', () => {
   const Form: any = ({ children, onFinish }: any) => (
     <form onSubmit={(event) => {
       event.preventDefault();
-      onFinish();
+      onFinish({ webhook: 'https://hooks.example.com/comment' });
     }}>
       {children}
     </form>
@@ -87,8 +88,8 @@ jest.mock('antd', () => {
   Input.TextArea = (props: any) => <textarea {...props} />;
 
   return {
-    Button: ({ children, onClick, htmlType, loading }: any) => (
-      <button type={htmlType === 'submit' ? 'submit' : 'button'} disabled={loading} onClick={onClick}>{children}</button>
+    Button: ({ children, onClick, htmlType, loading, disabled }: any) => (
+      <button type={htmlType === 'submit' ? 'submit' : 'button'} disabled={loading || disabled} onClick={onClick}>{children}</button>
     ),
     Col: ({ children }: any) => <div>{children}</div>,
     Form,
@@ -116,14 +117,23 @@ const renderSetting = async () => {
 describe('Setting page', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (SettingApi.getAll as jest.Mock).mockResolvedValue([
-      { id: 1, key: 'SiteTitle', value: 'Myecho', description: '站点标题说明', type: 'string', is_system: true },
-      { id: 2, key: 'CustomKey', value: 'custom', description: 'custom', type: 'string', is_system: false },
+    (SettingApi.getAdminAll as jest.Mock).mockResolvedValue([
+      { id: 1, key: 'SiteTitle', value: 'Myecho', description: '站点标题说明', type: 'string', is_system: true, is_public: false },
+      { id: 2, key: 'CustomKey', value: 'custom', description: 'custom', type: 'string', is_system: false, is_public: false },
+      { id: 3, key: 'CommentNotificationWebhook', value: '', description: '通知', type: 'string', is_system: true, is_public: false },
     ]);
     (SettingApi.create as jest.Mock).mockResolvedValue({});
     (SettingApi.updateValue as jest.Mock).mockResolvedValue({});
     (SettingApi.delete as jest.Mock).mockResolvedValue({});
     (SettingApi.exportBackup as jest.Mock).mockResolvedValue(new Blob(['backup']));
+    (SettingApi.importBackup as jest.Mock).mockResolvedValue({
+      version: 1,
+      exported_at: '2026-05-28T09:30:00Z',
+      counts: { articles: 2, comments: 3, settings: 4 },
+      storage_files: 5,
+      storage_bytes: 100,
+      backup_path: '/backups/safety.zip',
+    });
   });
 
   test('loads basic settings and preserves their descriptions when saving', async () => {
@@ -136,12 +146,12 @@ describe('Setting page', () => {
     expect(screen.getByText('站点地址')).toBeInTheDocument();
     fireEvent.click(screen.getByText('保存基础设置'));
 
-    await waitFor(() => expect(SettingApi.updateValue).toHaveBeenCalledWith('SiteTitle', 'Myecho', '站点标题说明'));
+    await waitFor(() => expect(SettingApi.updateValue).toHaveBeenCalledWith('SiteTitle', 'Myecho', '站点标题说明', false));
     expect(SettingApi.create).toHaveBeenCalledWith(expect.objectContaining({
       key: 'SiteDescription',
       description: '站点描述',
     }));
-    await waitFor(() => expect(SettingApi.getAll).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(SettingApi.getAdminAll).toHaveBeenCalledTimes(2));
   });
 
   test('deletes a setting and refreshes list', async () => {
@@ -155,7 +165,7 @@ describe('Setting page', () => {
     });
 
     await waitFor(() => expect(SettingApi.delete).toHaveBeenCalledWith('CustomKey'));
-    expect(SettingApi.getAll).toHaveBeenCalledTimes(2);
+    expect(SettingApi.getAdminAll).toHaveBeenCalledTimes(2);
   });
 
   test('opens create modal and wires callback to refresh', async () => {
@@ -171,7 +181,7 @@ describe('Setting page', () => {
       await Promise.resolve();
     });
 
-    await waitFor(() => expect(SettingApi.getAll).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(SettingApi.getAdminAll).toHaveBeenCalledTimes(2));
   });
 
   test('downloads an exported backup', async () => {
@@ -190,5 +200,29 @@ describe('Setting page', () => {
     expect(revokeObjectURL).toHaveBeenCalledWith('blob:backup');
 
     click.mockRestore();
+  });
+
+  test('previews and restores a backup, keeping the comment webhook private', async () => {
+    const confirm = jest.spyOn(window, 'confirm').mockReturnValue(true);
+    await renderSetting();
+
+    fireEvent.click(screen.getByText('保存通知设置'));
+    await waitFor(() => expect(SettingApi.updateValue).toHaveBeenCalledWith(
+      'CommentNotificationWebhook',
+      'https://hooks.example.com/comment',
+      '通知',
+      false,
+    ));
+
+    const backup = new File(['backup'], 'backup.zip', { type: 'application/zip' });
+    fireEvent.change(document.querySelector('input[type="file"]')!, { target: { files: [backup] } });
+    fireEvent.click(screen.getByText('预检备份'));
+    await waitFor(() => expect(SettingApi.importBackup).toHaveBeenCalledWith(backup, true));
+    expect(await screen.findByText('预检通过')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('确认恢复'));
+    await waitFor(() => expect(SettingApi.importBackup).toHaveBeenCalledWith(backup, false));
+    expect(await screen.findByText('恢复完成')).toBeInTheDocument();
+    confirm.mockRestore();
   });
 });

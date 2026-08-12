@@ -57,8 +57,8 @@ describe('Link modalCreate', () => {
     await waitFor(() => expect(CategoryApi.getLinkList).toHaveBeenCalled());
     fireEvent.change(screen.getByPlaceholderText('链接名'), { target: { value: 'Go' } });
     fireEvent.change(screen.getByPlaceholderText('链接描述'), { target: { value: 'Go site' } });
-    fireEvent.change(screen.getByPlaceholderText('链接地址'), { target: { value: 'https://go.dev' } });
-    fireEvent.change(screen.getByPlaceholderText('链接图像地址'), { target: { value: 'https://go.dev/icon.png' } });
+    fireEvent.change(screen.getByPlaceholderText(/链接地址/), { target: { value: 'https://go.dev' } });
+    fireEvent.change(screen.getByPlaceholderText(/链接图像地址/), { target: { value: 'https://go.dev/icon.png' } });
     fireEvent.click(screen.getByText('choose category'));
     fireEvent.click(screen.getByText('ok'));
 

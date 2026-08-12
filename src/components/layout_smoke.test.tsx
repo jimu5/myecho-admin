@@ -49,6 +49,7 @@ describe('layout components', () => {
       'setting',
       'theme',
       'static-pages',
+      'profile',
     ]);
   });
 

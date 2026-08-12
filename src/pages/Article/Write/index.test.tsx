@@ -70,6 +70,8 @@ jest.mock('@/utils/apis/article', () => ({
     get_no_read: jest.fn(),
     patch: jest.fn(),
     create: jest.fn(),
+    revisions: jest.fn(),
+    restoreRevision: jest.fn(),
   },
 }), { virtual: true });
 
@@ -140,11 +142,15 @@ jest.mock('antd', () => {
   );
   Select.Option = ({ children }: any) => <span>{children}</span>;
   const Button = ({ children, onClick, disabled }: any) => <button disabled={disabled} onClick={onClick}>{children}</button>;
-  const Modal = ({ children, open }: any) => open ? <div>{children}</div> : null;
-  const Input: any = ({ value, onChange }: any) => <input aria-label="media keyword" value={value} onChange={onChange} />;
-  Input.TextArea = ({ id, placeholder, value, maxLength, onChange }: any) => (
+  const Modal: any = ({ children, open }: any) => open ? <div>{children}</div> : null;
+  Modal.confirm = jest.fn(({ onOk }: any) => onOk());
+  const Input: any = ({ value, onChange, placeholder, 'aria-label': ariaLabel }: any) => (
+    <input aria-label={ariaLabel} placeholder={placeholder} value={value} onChange={onChange} />
+  );
+  Input.TextArea = ({ id, placeholder, value, maxLength, onChange, 'aria-label': ariaLabel }: any) => (
     <textarea
       id={id}
+      aria-label={ariaLabel}
       placeholder={placeholder}
       value={value}
       maxLength={maxLength}
@@ -165,7 +171,10 @@ jest.mock('antd', () => {
       )}
     </div>
   );
-  List.Item = ({ children }: any) => <div>{children}</div>;
+  List.Item = ({ children, actions = [] }: any) => (
+    <div>{children}{actions.map((action: any, index: number) => <span key={index}>{action}</span>)}</div>
+  );
+  List.Item.Meta = ({ title, description }: any) => <div>{title}{description}</div>;
 
   return {
     Layout,
@@ -249,6 +258,8 @@ describe('ArticleWrite', () => {
     (ArticleApi.get_no_read as jest.Mock).mockResolvedValue(editArticle);
     (ArticleApi.patch as jest.Mock).mockResolvedValue({});
     (ArticleApi.create as jest.Mock).mockResolvedValue({});
+    (ArticleApi.revisions as jest.Mock).mockResolvedValue([]);
+    (ArticleApi.restoreRevision as jest.Mock).mockResolvedValue(editArticle);
     (MosAPI.getList as jest.Mock).mockResolvedValue({
       total: 1,
       data: [{ id: 1, full_name: 'cover.png', extension_name: 'png', url: '/mos/cover.png', note: '站点封面' }],
@@ -298,6 +309,9 @@ describe('ArticleWrite', () => {
     fireEvent.change(screen.getByPlaceholderText('添加标题'), { target: { value: 'Updated title' } });
     fireEvent.change(screen.getByPlaceholderText('自定义链接 slug'), { target: { value: 'updated-title' } });
     fireEvent.change(screen.getByPlaceholderText('用于文章列表和分享预览，留空则自动从正文生成'), { target: { value: 'Updated summary' } });
+    fireEvent.change(screen.getByLabelText('SEO 标题'), { target: { value: 'Search title' } });
+    fireEvent.change(screen.getByLabelText('SEO 描述'), { target: { value: 'Search description' } });
+    fireEvent.change(screen.getByLabelText('分享图地址'), { target: { value: '/storage/share.png' } });
     fireEvent.change(screen.getByPlaceholderText('访问密码'), { target: { value: 'new secret' } });
     fireEvent.click(screen.getByText('select status'));
     fireEvent.click(screen.getByText('select type'));
@@ -314,6 +328,9 @@ describe('ArticleWrite', () => {
         title: 'Updated title',
         slug: 'updated-title',
         summary: 'Updated summary',
+        seo_title: 'Search title',
+        seo_description: 'Search description',
+        share_image: '/storage/share.png',
         type: 2,
         content_format: 'html',
         password: 'new secret',
@@ -504,5 +521,29 @@ describe('ArticleWrite', () => {
     fireEvent.click(screen.getByText('next media page'));
 
     await waitFor(() => expect(MosAPI.getList).toHaveBeenCalledWith(2, 10, 'cover'));
+  });
+
+  test('loads and restores an article revision', async () => {
+    mockParams = { id: '42' };
+    const revision = {
+      id: 9,
+      title: 'Previous title',
+      slug: 'previous-title',
+      created_at: '2026-05-01T08:00:00+08:00',
+    };
+    (ArticleApi.revisions as jest.Mock)
+      .mockResolvedValueOnce([revision])
+      .mockResolvedValueOnce([]);
+
+    await renderArticleWrite();
+    await waitFor(() => expect(screen.getByPlaceholderText('添加标题')).toHaveValue('Old title'));
+    fireEvent.click(screen.getByText('版本历史'));
+
+    expect(await screen.findByText(/Previous title/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '恢复' }));
+
+    await waitFor(() => expect(ArticleApi.restoreRevision).toHaveBeenCalledWith(42, 9));
+    expect(notification.success).toHaveBeenCalledWith({ message: '版本已恢复' });
+    expect(ArticleApi.revisions).toHaveBeenCalledTimes(2);
   });
 });

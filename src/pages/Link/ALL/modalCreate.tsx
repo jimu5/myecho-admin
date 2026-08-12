@@ -68,6 +68,7 @@ const ModalCreate: React.FC<Props> = ({ open, setOpen, okCallBack }) => {
       title="创建新链接"
       open={open}
       onOk={handleOk}
+      okButtonProps={{ disabled: !LinkWrite?.name?.trim() || !LinkWrite?.url?.trim() }}
       onCancel={() => {
         setOpen(false);
       }}
@@ -75,8 +76,8 @@ const ModalCreate: React.FC<Props> = ({ open, setOpen, okCallBack }) => {
       <Space direction="vertical" style={{ width: '100%' }}>
         <Input placeholder="链接名" onChange={(e) => setLinkWrite({ ...LinkWrite!, name: e.target.value })} />
         <Input placeholder="链接描述" onChange={(e) => setLinkWrite({ ...LinkWrite!, description: e.target.value })} />
-        <Input placeholder="链接地址" onChange={(e) => setLinkWrite({ ...LinkWrite!, url: e.target.value })} />
-        <Input placeholder="链接图像地址" onChange={(e) => setLinkWrite({ ...LinkWrite!, icon_url: e.target.value })} />
+        <Input placeholder="链接地址（例：https://example.com）" onChange={(e) => setLinkWrite({ ...LinkWrite!, url: e.target.value })} />
+        <Input placeholder="链接图像地址（可选）" onChange={(e) => setLinkWrite({ ...LinkWrite!, icon_url: e.target.value })} />
         <TreeSelect
           value={LinkWrite?.category_uid}
           treeData={categoryTree}

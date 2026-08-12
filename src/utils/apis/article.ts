@@ -52,6 +52,9 @@ export interface article extends baseReturn {
     author: user;
     title: string;
     slug: string;
+    seo_title: string;
+    seo_description: string;
+    share_image: string;
     content_format: ArticleContentFormat;
     summary: string;
     detail: articleDetail;
@@ -72,6 +75,9 @@ export interface article extends baseReturn {
 export interface articleRequest {
     title?: string;
     slug?: string;
+    seo_title?: string;
+    seo_description?: string;
+    share_image?: string;
     content_format?: ArticleContentFormat;
     summary?: string;
     content?: string;
@@ -104,6 +110,13 @@ export interface articleBatchRequest {
     status?: number;
 }
 
+export interface articleRevision {
+    id: number;
+    title: string;
+    slug: string;
+    created_at: string;
+}
+
 export class ArticleApi {
     // 获取文章列表
     static getList(params: articleListParams) {
@@ -133,6 +146,12 @@ export class ArticleApi {
     static patch(id: number, params: articleRequest) {
         ArticleApi._set_param_default(params)
         return axios.patch(`/articles/${id}`, params);
+    }
+    static revisions(id: number): Promise<articleRevision[]> {
+        return axios.get<any, articleRevision[]>(`/articles/${id}/revisions`);
+    }
+    static restoreRevision(id: number, revisionId: number): Promise<article> {
+        return axios.post<any, article>(`/articles/${id}/revisions/${revisionId}/restore`);
     }
 
     static _set_param_default(params: articleRequest) {

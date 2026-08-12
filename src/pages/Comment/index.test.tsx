@@ -34,6 +34,7 @@ jest.mock('@/utils/apis/comment', () => ({
   CommentApi: {
     getList: jest.fn(),
     batch: jest.fn(),
+    reply: jest.fn(),
     delete: jest.fn(),
   },
 }), { virtual: true });
@@ -47,9 +48,28 @@ jest.mock('antd', () => {
     </div>
   );
   Select.Option = ({ children }: any) => <span>{children}</span>;
+  const Input: any = ({ value, onChange, placeholder, type, 'aria-label': ariaLabel }: any) => (
+    <input
+      aria-label={ariaLabel}
+      placeholder={placeholder}
+      type={type}
+      value={value}
+      onChange={onChange}
+    />
+  );
+  Input.TextArea = ({ value, onChange, placeholder }: any) => (
+    <textarea placeholder={placeholder} value={value} onChange={onChange} />
+  );
 
   return {
     Button: ({ children, onClick, disabled }: any) => <button disabled={disabled} onClick={onClick}>{children}</button>,
+    Input,
+    Modal: ({ children, open, onOk, okButtonProps }: any) => open ? (
+      <div>
+        {children}
+        <button disabled={okButtonProps?.disabled} onClick={onOk}>发送回复</button>
+      </div>
+    ) : null,
     Popconfirm: ({ children, onConfirm }: any) => <span onClick={onConfirm}>{children}</span>,
     Select,
     Space: ({ children }: any) => <div>{children}</div>,
@@ -86,17 +106,18 @@ describe('CommentPage', () => {
     jest.clearAllMocks();
     (CommentApi.getList as jest.Mock).mockResolvedValue({ total: 1, data: commentRows });
     (CommentApi.batch as jest.Mock).mockResolvedValue({});
+    (CommentApi.reply as jest.Mock).mockResolvedValue({});
     (CommentApi.delete as jest.Mock).mockResolvedValue({});
   });
 
   test('loads pending comments by default', async () => {
     render(<CommentPage />);
 
-    await waitFor(() => expect(CommentApi.getList).toHaveBeenCalledWith({
+    await waitFor(() => expect(CommentApi.getList).toHaveBeenCalledWith(expect.objectContaining({
       page: 1,
       page_size: 10,
       status: 1,
-    }));
+    })));
     expect(screen.getByText('hello')).toBeInTheDocument();
     expect(screen.getByText(/回复 #12/)).toBeInTheDocument();
   });
@@ -132,5 +153,29 @@ describe('CommentPage', () => {
     expect(await screen.findByText('Bob')).toBeInTheDocument();
     expect(screen.queryByText(/alice@example.com/)).not.toBeInTheDocument();
     expect(within(screen.getByTestId('column-status')).getByText('已拒绝')).toBeInTheDocument();
+  });
+
+  test('filters comments and sends an administrator reply', async () => {
+    render(<CommentPage />);
+    await waitFor(() => expect(CommentApi.getList).toHaveBeenCalled());
+
+    fireEvent.change(screen.getByPlaceholderText('内容 / 作者 / 邮箱'), { target: { value: 'Alice' } });
+    fireEvent.change(screen.getByPlaceholderText('文章 ID'), { target: { value: '17' } });
+    fireEvent.change(screen.getByLabelText('开始日期'), { target: { value: '2026-05-01' } });
+    fireEvent.change(screen.getByLabelText('结束日期'), { target: { value: '2026-05-31' } });
+    fireEvent.click(screen.getByRole('button', { name: '筛选' }));
+
+    await waitFor(() => expect(CommentApi.getList).toHaveBeenLastCalledWith(expect.objectContaining({
+      keyword: 'Alice',
+      article_id: 17,
+      date_from: '2026-05-01',
+      date_to: '2026-05-31',
+    })));
+
+    fireEvent.click(screen.getByRole('button', { name: '回复' }));
+    fireEvent.change(screen.getByPlaceholderText('输入管理员回复'), { target: { value: 'Thanks' } });
+    fireEvent.click(screen.getByRole('button', { name: '发送回复' }));
+
+    await waitFor(() => expect(CommentApi.reply).toHaveBeenCalledWith(1, 'Thanks'));
   });
 });

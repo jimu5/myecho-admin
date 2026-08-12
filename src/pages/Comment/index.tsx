@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { Button, message, Popconfirm, Select, Space, Table, Tag } from 'antd';
+import { Button, Input, message, Modal, Popconfirm, Select, Space, Table, Tag } from 'antd';
 import type { ColumnsType } from 'antd/lib/table';
 import dayjs from 'dayjs';
 
@@ -15,11 +15,16 @@ const statusColor = (status: number) => {
 };
 
 const CommentPage: React.FC = () => {
+  const emptyFilters = { keyword: '', articleId: '', dateFrom: '', dateTo: '' };
   const [data, setData] = React.useState<{ total: number; list: comment[] }>({ total: 0, list: [] });
   const [loading, setLoading] = React.useState(false);
   const [page, setPage] = React.useState({ current: 1, pageSize: 10 });
   const [status, setStatus] = React.useState<number | undefined>(1);
+  const [draftFilters, setDraftFilters] = React.useState(emptyFilters);
+  const [filters, setFilters] = React.useState(emptyFilters);
   const [selectedRowKeys, setSelectedRowKeys] = React.useState<React.Key[]>([]);
+  const [replying, setReplying] = React.useState<comment>();
+  const [replyContent, setReplyContent] = React.useState('');
   const { current, pageSize } = page;
 
   const getCommentList = useCallback(() => {
@@ -28,10 +33,14 @@ const CommentPage: React.FC = () => {
       page: current,
       page_size: pageSize,
       status,
+      keyword: filters.keyword || undefined,
+      article_id: Number(filters.articleId) || undefined,
+      date_from: filters.dateFrom || undefined,
+      date_to: filters.dateTo || undefined,
     }).then((nextData: any) => {
       setData({ total: nextData.total, list: nextData.data });
     }).finally(() => setLoading(false));
-  }, [current, pageSize, status]);
+  }, [current, pageSize, status, filters]);
 
   useEffect(() => {
     getCommentList();
@@ -86,7 +95,7 @@ const CommentPage: React.FC = () => {
       key: 'article_title',
       width: 220,
       responsive: ['md'],
-      render: (text, record) => record.article_id ? <a href={`/articles/${record.article_id}`} target="_blank" rel="noreferrer">{text || '-'}</a> : '-',
+      render: (text, record) => record.article_id ? <a href={`/admin/article/write/${record.article_id}`}>{text || '-'}</a> : '-',
     },
     {
       title: '状态',
@@ -114,9 +123,10 @@ const CommentPage: React.FC = () => {
       title: '操作',
       key: 'action',
       fixed: 'right',
-      width: 180,
+      width: 220,
       render: (_, record) => (
         <Space size={[0, 4]} wrap>
+          <Button type="link" size="small" onClick={() => setReplying(record)}>回复</Button>
           <Button type="link" size="small" onClick={() => updateStatus([record.id], 2)}>通过</Button>
           <Button type="link" size="small" onClick={() => updateStatus([record.id], 3)}>拒绝</Button>
           <Button type="link" size="small" onClick={() => updateStatus([record.id], 4)}>垃圾</Button>
@@ -151,6 +161,55 @@ const CommentPage: React.FC = () => {
             <Option value={value} key={value}>{label}</Option>
           ))}
         </Select>
+        <Input
+          allowClear
+          placeholder="内容 / 作者 / 邮箱"
+          style={{ width: 210 }}
+          value={draftFilters.keyword}
+          onChange={(event) => setDraftFilters((prev) => ({ ...prev, keyword: event.target.value }))}
+        />
+        <Input
+          allowClear
+          placeholder="文章 ID"
+          type="number"
+          min={1}
+          step={1}
+          style={{ width: 110 }}
+          value={draftFilters.articleId}
+          onChange={(event) => setDraftFilters((prev) => ({ ...prev, articleId: event.target.value }))}
+        />
+        <Input
+          type="date"
+          aria-label="开始日期"
+          style={{ width: 145 }}
+          value={draftFilters.dateFrom}
+          onChange={(event) => setDraftFilters((prev) => ({ ...prev, dateFrom: event.target.value }))}
+        />
+        <Input
+          type="date"
+          aria-label="结束日期"
+          style={{ width: 145 }}
+          value={draftFilters.dateTo}
+          onChange={(event) => setDraftFilters((prev) => ({ ...prev, dateTo: event.target.value }))}
+        />
+        <Button
+          type="primary"
+          onClick={() => {
+            setFilters(draftFilters);
+            setPage((prev) => ({ ...prev, current: 1 }));
+          }}
+        >
+          筛选
+        </Button>
+        <Button
+          onClick={() => {
+            setDraftFilters(emptyFilters);
+            setFilters(emptyFilters);
+            setPage((prev) => ({ ...prev, current: 1 }));
+          }}
+        >
+          重置
+        </Button>
         <Button onClick={() => refresh()}>刷新</Button>
       </Space>
       <Space wrap className="admin-actionbar">
@@ -188,6 +247,34 @@ const CommentPage: React.FC = () => {
         scroll={{ x: 'max-content' }}
       />
       </div>
+      <Modal
+        title={`回复 ${replying?.author_name || '评论'}`}
+        open={Boolean(replying)}
+        okText="发送回复"
+        okButtonProps={{ disabled: !replyContent.trim() }}
+        onCancel={() => {
+          setReplying(undefined);
+          setReplyContent('');
+        }}
+        onOk={() => {
+          if (!replying || !replyContent.trim()) return;
+          CommentApi.reply(replying.id, replyContent.trim()).then(() => {
+            message.success('回复成功');
+            setReplying(undefined);
+            setReplyContent('');
+            refresh();
+          });
+        }}
+      >
+        <Input.TextArea
+          rows={5}
+          maxLength={2000}
+          showCount
+          value={replyContent}
+          onChange={(event) => setReplyContent(event.target.value)}
+          placeholder="输入管理员回复"
+        />
+      </Modal>
     </div>
   );
 };

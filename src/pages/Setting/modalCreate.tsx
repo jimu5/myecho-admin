@@ -39,6 +39,14 @@ const ModalCreate: React.FC<Props> = ({ open, setOpen, okCallBack }) => {
         <Input placeholder="设置 key" onChange={(e) => setSettingWrite({ ...settingWrite!, key: e.target.value })} />
         <Input placeholder="设置 type" onChange={(e) => setSettingWrite({ ...settingWrite!, type: e.target.value })} />
         <Input placeholder="设置 value" onChange={(e) => setSettingWrite({ ...settingWrite!, value: e.target.value })} />
+        <label>
+          <input
+            type="checkbox"
+            checked={settingWrite?.is_public || false}
+            onChange={(e) => setSettingWrite({ ...settingWrite!, is_public: e.target.checked })}
+          />
+          允许公开读取
+        </label>
       </Space>
     </Modal>
   )
